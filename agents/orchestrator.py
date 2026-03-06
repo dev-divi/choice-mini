@@ -121,16 +121,19 @@ class Orchestrator:
 
         # ── Phase 4: Launch ─────────────────────────────────────────────
         self.status = AgentStatus.LAUNCHING
-        console.print(Panel("[bold red]Phase 4: Launch Agent — Deploying to Shopify...[/]"))
+        from config import settings as cfg
+        platform_label = "TikTok Shop" if cfg.LAUNCH_PLATFORM == "tiktok_shop" else "Shopify"
+        console.print(Panel(f"[bold red]Phase 4: Launch Agent — Deploying to {platform_label}...[/]"))
 
         for product, supplier, creative in creative_products:
             result = self.launch.run(product, supplier, creative)
             report.launches.append(result)
             if result.launched:
+                aff = f" | {result.affiliate_commission:.0%} affiliate" if result.affiliate_commission else ""
                 console.print(
                     f"  [green]{product.name}: LAUNCHED[/] -> "
-                    f"${result.listing_price} ({result.profit_margin:.0%} margin) "
-                    f"[dim]ID: {result.shopify_product_id}[/]"
+                    f"${result.listing_price} ({result.profit_margin:.0%} margin{aff}) "
+                    f"[dim]ID: {result.product_id}[/]"
                 )
             else:
                 console.print(

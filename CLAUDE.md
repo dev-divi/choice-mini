@@ -18,7 +18,7 @@ The user acts as the "player," defining high-level strategies in `config/setting
 
 ```
 Scout → Sourcing → Creative → Launch
-(Kalodata)  (AutoDS)   (Claude)   (AutoDS API → Shopify)
+(Kalodata)  (AutoDS)   (Claude)   (TikTok Shop Seller / Shopify)
 ```
 
 ### Agent Roles
@@ -31,8 +31,10 @@ Scout → Sourcing → Creative → Launch
 3. **Creative Agent** (`agents/creative.py`) — Ad copy & content via Claude/PiPiAds
    - Scrapes top 3 ads, rewrites with "game-like" Choice Aura tone
    - Includes follow-up formula from viral research
-4. **Launch Agent** (`agents/launch.py`) — Product import via AutoDS API
-   - SEO-optimized titles, 30% minimum margin pricing, Shopify import
+4. **Launch Agent** (`agents/launch.py`) — Product listing (TikTok Shop or Shopify)
+   - TikTok Shop Seller Center (default): listing + 20% affiliate commission setup
+   - Shopify (alternative): AutoDS API import
+   - SEO-optimized titles, 30% minimum margin after ALL fees (platform + affiliate)
 
 ### Orchestrator
 
@@ -44,8 +46,11 @@ Scout → Sourcing → Creative → Launch
 choice-mini/
 ├── CLAUDE.md                  # This file
 ├── README.md                  # Project overview
-├── main.py                    # Entry point — run the pipeline
+├── main.py                    # Entry point — run the pipeline (CLI)
+├── app.py                     # Web dashboard — run with `python app.py`
 ├── requirements.txt           # Python dependencies
+├── templates/
+│   └── dashboard.html         # Web UI — dark command center theme
 ├── config/
 │   ├── __init__.py
 │   └── settings.py            # All thresholds, filters, rules
@@ -78,7 +83,8 @@ choice-mini/
 
 ```bash
 pip install -r requirements.txt
-python main.py
+python main.py        # CLI output
+python app.py         # Web dashboard at http://127.0.0.1:5000
 ```
 
 ## Key Research Insights (from SECOND_BRAIN)

@@ -112,9 +112,13 @@ def main():
             print(f"\nFollow-up plan:")
             for step in launch.creative.follow_up_plan:
                 print(f"  • {step}")
-            print(f"\nSEO Title: {launch.seo_title}")
+            platform = "TikTok Shop" if launch.platform == "tiktok_shop" else "Shopify"
+            print(f"\nPlatform: {platform} (ID: {launch.product_id})")
+            print(f"Title: {launch.seo_title}")
             print(f"Price: ${launch.listing_price}")
             print(f"Margin: {launch.profit_margin:.0%}")
+            if launch.affiliate_commission:
+                print(f"Affiliate: {launch.affiliate_commission:.0%} (${launch.affiliate_payout:.2f}/sale)")
             print()
 
 

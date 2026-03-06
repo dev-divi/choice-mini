@@ -91,10 +91,13 @@ class LaunchResult:
     product: Product
     supplier: SupplierMatch
     creative: Creative
-    shopify_product_id: str | None = None
+    platform: str = "tiktok_shop"  # tiktok_shop | shopify
+    product_id: str | None = None
     seo_title: str = ""
     listing_price: float = 0.0
     profit_margin: float = 0.0
+    affiliate_commission: float = 0.0  # e.g. 0.20 = 20%
+    affiliate_payout: float = 0.0      # $ per sale to affiliates
     launched: bool = False
     launched_at: datetime | None = None
 

@@ -26,11 +26,19 @@ CREATIVE_TONE = "game-like"  # Choice Aura tone
 CREATIVE_USE_FOLLOW_UP_FORMULA = True
 
 # =============================================================================
-# Launch Agent (AutoDS API → Shopify)
+# Launch Agent
 # =============================================================================
 LAUNCH_MIN_PROFIT_MARGIN = 0.30  # 30% after all fees
 LAUNCH_AUTO_SEO_TITLE = True
-LAUNCH_PLATFORM = "shopify"
+LAUNCH_PLATFORM = "tiktok_shop"  # "tiktok_shop" or "shopify"
+
+# =============================================================================
+# TikTok Shop Seller Center
+# =============================================================================
+TIKTOK_COMMISSION_RATE = 0.06    # TikTok's ~6% platform commission
+TIKTOK_PAYMENT_FEE = 0.029      # ~2.9% payment processing
+TIKTOK_FIXED_FEE = 0.30         # $0.30 per order
+TIKTOK_AFFILIATE_COMMISSION = 0.20  # 20% affiliate commission (Jon Reiner method)
 
 # =============================================================================
 # Product quality filters (from research)
