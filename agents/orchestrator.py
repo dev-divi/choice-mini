@@ -130,7 +130,7 @@ class Orchestrator:
                 console.print(
                     f"  [green]{product.name}: LAUNCHED[/] -> "
                     f"${result.listing_price} ({result.profit_margin:.0%} margin) "
-                    f"[dim]ID: {result.shopify_product_id}[/]"
+                    f"[dim]ID: {result.product_id}[/]"
                 )
             else:
                 console.print(

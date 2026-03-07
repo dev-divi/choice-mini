@@ -1,10 +1,14 @@
 """
-Launch Agent — Product Import & Listing (AutoDS API → Shopify)
+Launch Agent — Product Listing & Import
+
+Supports two platforms:
+  - TikTok Shop Seller Center (default) — list product + set affiliate commission
+  - Shopify (via AutoDS API) — import product with SEO title
 
 Logic:
-  Auto-imports the product to your Shopify store.
-  Uses AI to generate an SEO-optimized title.
-  Sets pricing based on a 30% minimum profit margin after all fees.
+  Uses AI to generate an optimized title.
+  Sets pricing based on a 30% minimum profit margin after ALL fees
+  (platform commission + payment processing + affiliate payout).
 """
 
 from __future__ import annotations
@@ -14,68 +18,99 @@ from agents.models import Product, SupplierMatch, Creative, LaunchResult
 from config import settings
 
 
-# Approximate TikTok Shop + platform fees
-TIKTOK_SHOP_FEE = 0.06   # 6%
-PAYMENT_PROCESSING_FEE = 0.029  # 2.9%
-FIXED_FEE_PER_ORDER = 0.30  # $0.30
-
-
 class LaunchAgent:
-    """Handles product import, SEO title generation, and pricing for Shopify launch."""
+    """Handles product listing, title generation, pricing, and affiliate setup."""
 
     name = "Launch"
-    icon = "🚀"
+    icon = "rocket"
 
-    def generate_seo_title(self, product: Product) -> str:
-        """Generate an SEO-optimized product title."""
+    def __init__(self, platform: str | None = None):
+        self.platform = platform or settings.LAUNCH_PLATFORM
+
+    def _get_fees(self) -> dict:
+        """Build fee structure from current settings (supports runtime override)."""
+        return {
+            "tiktok_shop": {
+                "commission": settings.TIKTOK_COMMISSION_RATE,
+                "payment": settings.TIKTOK_PAYMENT_FEE,
+                "fixed": settings.TIKTOK_FIXED_FEE,
+                "affiliate": settings.TIKTOK_AFFILIATE_COMMISSION,
+            },
+            "shopify": {
+                "commission": 0.0,
+                "payment": 0.029,
+                "fixed": 0.30,
+                "affiliate": 0.0,
+            },
+        }
+
+    def generate_title(self, product: Product) -> str:
+        """Generate an optimized product title for the target platform."""
         # In production this would call Claude API for AI-generated titles
         category_tag = product.category.replace("_", " ").title()
-        return f"{product.name} — {category_tag} | Fast US Shipping"
+        if self.platform == "tiktok_shop":
+            return f"{product.name} - {category_tag} | US Seller Fast Ship"
+        return f"{product.name} - {category_tag} | Fast US Shipping"
 
-    def calculate_price(self, supplier: SupplierMatch) -> tuple[float, float]:
+    def calculate_price(self, supplier: SupplierMatch) -> tuple[float, float, float]:
         """
-        Calculate listing price to hit minimum profit margin after all fees.
+        Calculate listing price to hit minimum profit margin after ALL fees
+        including affiliate commission.
 
-        Returns (listing_price, actual_margin).
+        Returns (listing_price, actual_margin, affiliate_payout_per_sale).
         """
+        fees = self._get_fees()[self.platform]
         cost = supplier.unit_cost
         min_margin = settings.LAUNCH_MIN_PROFIT_MARGIN
 
-        # Price = cost / (1 - margin - tiktok_fee - processing_fee) + fixed_fee
-        denominator = 1.0 - min_margin - TIKTOK_SHOP_FEE - PAYMENT_PROCESSING_FEE
+        # Total percentage fees: platform + payment + affiliate
+        total_pct_fees = fees["commission"] + fees["payment"] + fees["affiliate"]
+
+        # Price = cost / (1 - margin - total_pct_fees) + fixed_fee
+        denominator = 1.0 - min_margin - total_pct_fees
         if denominator <= 0:
-            # Margins too tight, set at 2.5x cost as fallback
-            price = cost * 2.5
+            # Margins too tight with affiliate cut, set at 3x cost as fallback
+            price = cost * 3.0
         else:
-            price = (cost / denominator) + FIXED_FEE_PER_ORDER
+            price = (cost / denominator) + fees["fixed"]
 
-        # Round up to .99 pricing (ceil to ensure margin isn't lost to rounding)
-        price = math.ceil(price) - 0.01 if price > 10 else math.ceil(price) - 0.01
+        # Round up to .99 pricing (add buffer before ceiling to absorb rounding loss)
+        price = math.ceil(price + 0.50) - 0.01
 
-        # Calculate actual margin
+        # Calculate actual numbers
         revenue = price
-        fees = (revenue * TIKTOK_SHOP_FEE) + (revenue * PAYMENT_PROCESSING_FEE) + FIXED_FEE_PER_ORDER
-        actual_margin = (revenue - cost - fees) / revenue if revenue > 0 else 0
+        platform_fees = (
+            (revenue * fees["commission"])
+            + (revenue * fees["payment"])
+            + fees["fixed"]
+        )
+        affiliate_payout = revenue * fees["affiliate"]
+        actual_margin = (revenue - cost - platform_fees - affiliate_payout) / revenue if revenue > 0 else 0
 
-        return price, actual_margin
+        return price, actual_margin, affiliate_payout
 
-    def import_to_shopify(
+    def list_product(
         self,
         product: Product,
         supplier: SupplierMatch,
-        seo_title: str,
+        title: str,
         price: float,
     ) -> str | None:
         """
-        Import product to Shopify via AutoDS API.
-        Returns the Shopify product ID on success, None on failure.
+        List product on the target platform.
+        Returns the product ID on success, None on failure.
 
-        In production, this calls the AutoDS API.
         Currently returns a placeholder for the pipeline scaffold.
         """
-        # TODO: Integrate AutoDS API for real imports
-        # autods.import_product(supplier.supplier_url, shopify_store, title=seo_title, price=price)
-        return f"SHOP-{hash(product.name) % 100000:05d}"
+        if self.platform == "tiktok_shop":
+            # TODO: Integrate TikTok Shop Seller Center API
+            # tiktok_api.create_product(title=title, price=price, ...)
+            # tiktok_api.set_affiliate_commission(product_id, rate=affiliate_rate)
+            return f"TTS-{hash(product.name) % 100000:05d}"
+        else:
+            # TODO: Integrate AutoDS API for Shopify imports
+            # autods.import_product(supplier.supplier_url, shopify_store, title=title, price=price)
+            return f"SHOP-{hash(product.name) % 100000:05d}"
 
     def run(
         self,
@@ -83,25 +118,29 @@ class LaunchAgent:
         supplier: SupplierMatch,
         creative: Creative,
     ) -> LaunchResult:
-        """Full launch pipeline: SEO title → pricing → import → result."""
-        seo_title = self.generate_seo_title(product)
-        price, margin = self.calculate_price(supplier)
+        """Full launch pipeline: title -> pricing -> list -> result."""
+        title = self.generate_title(product)
+        price, margin, affiliate_payout = self.calculate_price(supplier)
+        fees = self._get_fees()[self.platform]
 
         result = LaunchResult(
             product=product,
             supplier=supplier,
             creative=creative,
-            seo_title=seo_title,
+            platform=self.platform,
+            seo_title=title,
             listing_price=price,
             profit_margin=margin,
+            affiliate_commission=fees["affiliate"],
+            affiliate_payout=affiliate_payout,
         )
 
         if not result.is_profitable:
             return result
 
-        product_id = self.import_to_shopify(product, supplier, seo_title, price)
+        product_id = self.list_product(product, supplier, title, price)
         if product_id:
-            result.shopify_product_id = product_id
+            result.product_id = product_id
             result.launched = True
             result.launched_at = datetime.now()
 

@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choice Mini - Command Center</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0e17;
+            --bg-card: #111827;
+            --bg-card-hover: #1a2332;
+            --border: #1e293b;
+            --text: #e2e8f0;
+            --text-sec: #94a3b8;
+            --text-muted: #475569;
+            --scout: #22d3ee;
+            --sourcing: #4ade80;
+            --creative: #c084fc;
+            --launch: #f87171;
+            --success: #10b981;
+            --fail: #ef4444;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        /* ── Header ──────────────────────────────────────── */
+        .header {
+            background: linear-gradient(180deg, #0f1520 0%, var(--bg) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text);
+        }
+        .header h1 span { color: var(--scout); }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .status-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--success);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .status-dot::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .btn-config {
+            background: rgba(34, 211, 238, 0.1);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            color: var(--scout);
+            font-family: inherit;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-config:hover { background: rgba(34, 211, 238, 0.2); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        /* ── Summary Stats ───────────────────────────────── */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+        .stat-card .label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .stat-card:nth-child(1) .value { color: var(--scout); }
+        .stat-card:nth-child(2) .value { color: var(--sourcing); }
+        .stat-card:nth-child(3) .value { color: var(--creative); }
+        .stat-card:nth-child(4) .value { color: var(--launch); }
+
+        /* ── Funnel ──────────────────────────────────────── */
+        .funnel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 2.5rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        .funnel-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.4rem;
+            flex: 1;
+        }
+        .funnel-step .funnel-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .funnel-step .funnel-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+        .funnel-step:nth-child(1) .funnel-count { color: var(--scout); }
+        .funnel-step:nth-child(3) .funnel-count { color: var(--sourcing); }
+        .funnel-step:nth-child(5) .funnel-count { color: var(--creative); }
+        .funnel-step:nth-child(7) .funnel-count { color: var(--launch); }
+        .funnel-arrow {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            padding: 0 0.75rem;
+        }
+
+        /* ── Phase Sections ──────────────────────────────── */
+        .phase { margin-bottom: 2.5rem; }
+        .phase-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .phase-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--bg);
+        }
+        .phase-header h2 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .phase-header .phase-desc {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+        .phase--scout .phase-number { background: var(--scout); }
+        .phase--scout .phase-header h2 { color: var(--scout); }
+        .phase--sourcing .phase-number { background: var(--sourcing); }
+        .phase--sourcing .phase-header h2 { color: var(--sourcing); }
+        .phase--creative .phase-number { background: var(--creative); }
+        .phase--creative .phase-header h2 { color: var(--creative); }
+        .phase--launch .phase-number { background: var(--launch); }
+        .phase--launch .phase-header h2 { color: var(--launch); }
+
+        /* ── Cards Grid ──────────────────────────────────── */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: #2d3a4d;
+        }
+        .card-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text);
+        }
+        .card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.3rem 0;
+            font-size: 0.75rem;
+        }
+        .card-row .label { color: var(--text-muted); }
+        .card-row .val { color: var(--text-sec); font-weight: 600; }
+
+        /* ── Badges ──────────────────────────────────────── */
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .badge--pass { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge--fail { background: rgba(239, 68, 68, 0.15); color: var(--fail); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge--cat {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-sec);
+            border: 1px solid var(--border);
+            margin-left: 0.5rem;
+            font-weight: 400;
+        }
+        .tags { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .tag {
+            font-size: 0.6rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            background: rgba(34, 211, 238, 0.1);
+            color: var(--scout);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+        }
+        .card-status {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        /* ── Creative Card Specifics ─────────────────────── */
+        .script-section {
+            margin-top: 0.5rem;
+            padding: 0.6rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            line-height: 1.5;
+            color: var(--text-sec);
+        }
+        .script-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            color: var(--creative);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+            font-weight: 700;
+        }
+        .follow-up {
+            margin-top: 0.75rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+        }
+        .follow-up li {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 0.2rem;
+            list-style: none;
+            padding-left: 0;
+        }
+        .follow-up li::before {
+            content: '>';
+            color: var(--creative);
+            margin-right: 0.4rem;
+            font-weight: 700;
+        }
+
+        /* ── Launch Card Specifics ───────────────────────── */
+        .price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0.5rem 0;
+        }
+        .margin-bar-wrap {
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            height: 6px;
+            margin: 0.5rem 0;
+            overflow: hidden;
+        }
+        .margin-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .margin-bar--good { background: var(--success); }
+        .margin-bar--bad { background: var(--fail); }
+        .seo-title {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 0.5rem;
+        }
+        .card--dimmed { opacity: 0.45; }
+        .card--dimmed:hover { opacity: 0.7; }
+
+        /* ── Sidebar ─────────────────────────────────────── */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 150;
+        }
+        .sidebar-overlay.open { display: block; }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -440px;
+            width: 440px;
+            height: 100vh;
+            background: var(--bg-card);
+            border-left: 2px solid var(--scout);
+            z-index: 200;
+            overflow-y: auto;
+            transition: right 0.3s ease;
+            padding: 1.5rem;
+        }
+        .sidebar.open { right: 0; }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-header h2 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--scout);
+        }
+        .btn-close {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-close:hover { color: var(--text); border-color: var(--text-muted); }
+
+        .config-group {
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .config-group-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .config-group-title .arrow { transition: transform 0.2s; }
+        .config-group-title.collapsed .arrow { transform: rotate(-90deg); }
+        .config-group-body { display: block; }
+        .config-group-body.hidden { display: none; }
+
+        .field {
+            margin-bottom: 0.6rem;
+        }
+        .field label {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        .field input, .field select {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.75rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+        }
+        .field input:focus, .field select:focus {
+            outline: none;
+            border-color: var(--scout);
+        }
+        .field-check {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.6rem;
+        }
+        .field-check input[type="checkbox"] {
+            width: auto;
+            accent-color: var(--scout);
+        }
+        .field-check label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 0;
+        }
+
+        .btn-run {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--success);
+            color: var(--bg);
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+        .btn-run:hover { background: #0d9f6e; }
+
+        .btn-reset {
+            width: 100%;
+            padding: 0.6rem;
+            background: none;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+        }
+        .btn-reset:hover { color: var(--fail); border-color: var(--fail); }
+
+        /* ── Data Section ────────────────────────────────── */
+        .data-section {
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .data-section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+            color: var(--sourcing);
+        }
+        .data-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0.5rem;
+            margin-bottom: 0.3rem;
+            background: var(--bg);
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+        .data-entry .data-name { color: var(--text); font-weight: 600; flex: 1; }
+        .data-entry .data-detail { color: var(--text-muted); margin: 0 0.5rem; }
+        .data-entry .btn-del {
+            background: none;
+            border: none;
+            color: var(--fail);
+            font-family: inherit;
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 0 0.3rem;
+            opacity: 0.5;
+        }
+        .data-entry .btn-del:hover { opacity: 1; }
+
+        .add-form {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: var(--bg);
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        .add-form.visible { display: block; }
+        .add-form .field { margin-bottom: 0.4rem; }
+        .btn-add-toggle {
+            background: none;
+            border: 1px dashed var(--border);
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.65rem;
+            padding: 0.4rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.5rem;
+        }
+        .btn-add-toggle:hover { color: var(--sourcing); border-color: var(--sourcing); }
+        .btn-add-submit {
+            background: rgba(74, 222, 128, 0.15);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            color: var(--sourcing);
+            font-family: inherit;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.4rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        .btn-add-submit:hover { background: rgba(74, 222, 128, 0.25); }
+
+        .sub-group {
+            margin-left: 0.5rem;
+            padding-left: 0.5rem;
+            border-left: 2px solid var(--border);
+            margin-bottom: 0.5rem;
+        }
+        .sub-group-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.3rem;
+        }
+
+        /* ── Responsive ──────────────────────────────────── */
+        @media (max-width: 768px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .funnel { flex-wrap: wrap; }
+            .cards { grid-template-columns: 1fr; }
+            .sidebar { width: 100%; right: -100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <h1><span>Choice Mini</span> Command Center</h1>
+    <div class="header-right">
+        <div class="status-dot">Pipeline Complete</div>
+        <button class="btn-config" onclick="toggleSidebar()">CONFIG</button>
+    </div>
+</div>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h2>Strategy Panel</h2>
+        <button class="btn-close" onclick="toggleSidebar()">ESC</button>
+    </div>
+
+    <form action="/run" method="POST">
+
+        <!-- Scout Settings -->
+        <div class="config-group">
+            <div class="config-group-title" style="color: var(--scout)" onclick="toggleGroup(this)">
+                Scout Agent <span class="arrow">v</span>
+            </div>
+            <div class="config-group-body">
+                <div class="field">
+                    <label>Min Daily Sales</label>
+                    <input type="number" name="scout_min_daily_sales" value="{{ state.settings.scout_min_daily_sales }}">
+                </div>
+                <div class="field">
+                    <label>Min Conversion Rate</label>
+                    <input type="number" step="0.01" name="scout_min_conversion_rate" value="{{ state.settings.scout_min_conversion_rate }}">
+                </div>
+                <div class="field">
+                    <label>Max Competitors</label>
+                    <input type="number" name="scout_max_competitors" value="{{ state.settings.scout_max_competitors }}">
+                </div>
+                <div class="field">
+                    <label>Sales Velocity Window (days)</label>
+                    <input type="number" name="scout_sales_velocity_window_days" value="{{ state.settings.scout_sales_velocity_window_days }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Sourcing Settings -->
+        <div class="config-group">
+            <div class="config-group-title" style="color: var(--sourcing)" onclick="toggleGroup(this)">
+                Sourcing Agent <span class="arrow">v</span>
+            </div>
+            <div class="config-group-body">
+                <div class="field">
+                    <label>Ship From</label>
+                    <input type="text" name="sourcing_ship_from" value="{{ state.settings.sourcing_ship_from }}">
+                </div>
+                <div class="field">
+                    <label>Max Delivery Days</label>
+                    <input type="number" name="sourcing_max_delivery_days" value="{{ state.settings.sourcing_max_delivery_days }}">
+                </div>
+                <div class="field">
+                    <label>Min Supplier Score</label>
+                    <input type="number" step="0.1" name="sourcing_min_supplier_score" value="{{ state.settings.sourcing_min_supplier_score }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Creative Settings -->
+        <div class="config-group">
+            <div class="config-group-title" style="color: var(--creative)" onclick="toggleGroup(this)">
+                Creative Agent <span class="arrow">v</span>
+            </div>
+            <div class="config-group-body">
+                <div class="field">
+                    <label>Top Ads to Scrape</label>
+                    <input type="number" name="creative_top_ads_to_scrape" value="{{ state.settings.creative_top_ads_to_scrape }}">
+                </div>
+                <div class="field">
+                    <label>Tone</label>
+                    <input type="text" name="creative_tone" value="{{ state.settings.creative_tone }}">
+                </div>
+                <div class="field-check">
+                    <input type="checkbox" name="creative_use_follow_up_formula" id="chk-followup"
+                           {{ 'checked' if state.settings.creative_use_follow_up_formula }}>
+                    <label for="chk-followup">Use Follow-Up Formula</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Launch Settings -->
+        <div class="config-group">
+            <div class="config-group-title" style="color: var(--launch)" onclick="toggleGroup(this)">
+                Launch Agent <span class="arrow">v</span>
+            </div>
+            <div class="config-group-body">
+                <div class="field">
+                    <label>Platform</label>
+                    <select name="launch_platform">
+                        <option value="tiktok_shop" {{ 'selected' if state.settings.launch_platform == 'tiktok_shop' }}>TikTok Shop</option>
+                        <option value="shopify" {{ 'selected' if state.settings.launch_platform == 'shopify' }}>Shopify</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Min Profit Margin</label>
+                    <input type="number" step="0.01" name="launch_min_profit_margin" value="{{ state.settings.launch_min_profit_margin }}">
+                </div>
+                <div class="field-check">
+                    <input type="checkbox" name="launch_auto_seo_title" id="chk-seo"
+                           {{ 'checked' if state.settings.launch_auto_seo_title }}>
+                    <label for="chk-seo">Auto SEO Title</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- TikTok Fees -->
+        <div class="config-group">
+            <div class="config-group-title" style="color: var(--launch)" onclick="toggleGroup(this)">
+                TikTok Shop Fees <span class="arrow">v</span>
+            </div>
+            <div class="config-group-body hidden">
+                <div class="field">
+                    <label>Commission Rate</label>
+                    <input type="number" step="0.001" name="tiktok_commission_rate" value="{{ state.settings.tiktok_commission_rate }}">
+                </div>
+                <div class="field">
+                    <label>Payment Fee</label>
+                    <input type="number" step="0.001" name="tiktok_payment_fee" value="{{ state.settings.tiktok_payment_fee }}">
+                </div>
+                <div class="field">
+                    <label>Fixed Fee ($)</label>
+                    <input type="number" step="0.01" name="tiktok_fixed_fee" value="{{ state.settings.tiktok_fixed_fee }}">
+                </div>
+                <div class="field">
+                    <label>Affiliate Commission</label>
+                    <input type="number" step="0.01" name="tiktok_affiliate_commission" value="{{ state.settings.tiktok_affiliate_commission }}">
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-run">Run Pipeline</button>
+    </form>
+
+    <form action="/reset" method="POST" style="margin-bottom: 1.5rem">
+        <button type="submit" class="btn-reset">Reset to Defaults</button>
+    </form>
+
+    <!-- ── Data: Products ─────────────────────────────── -->
+    <div class="data-section">
+        <div class="data-section-title">Products</div>
+        {% for p in state.products %}
+        <div class="data-entry">
+            <span class="data-name">{{ p.name }}</span>
+            <span class="data-detail">{{ p.daily_sales }}/day</span>
+            <button class="btn-del" onclick="deleteProduct({{ loop.index0 }})">&times;</button>
+        </div>
+
+        <!-- Suppliers for this product -->
+        {% if state.suppliers.get(p.name) %}
+        <div class="sub-group">
+            <div class="sub-group-label">Suppliers</div>
+            {% for s in state.suppliers[p.name] %}
+            <div class="data-entry">
+                <span class="data-name">{{ s.supplier_name }}</span>
+                <span class="data-detail">${{ "%.2f"|format(s.unit_cost) }}</span>
+                <button class="btn-del" onclick="deleteSupplier('{{ p.name }}', {{ loop.index0 }})">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Ads for this product -->
+        {% if state.ads.get(p.name) %}
+        <div class="sub-group">
+            <div class="sub-group-label">Ads</div>
+            {% for a in state.ads[p.name] %}
+            <div class="data-entry">
+                <span class="data-name">{{ a.hook_text[:30] }}...</span>
+                <span class="data-detail">{{ a.views }}v</span>
+                <button class="btn-del" onclick="deleteAd('{{ p.name }}', {{ loop.index0 }})">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        <button class="btn-add-toggle" onclick="toggleForm('add-product-form')">+ Add Product</button>
+        <div class="add-form" id="add-product-form">
+            <div class="field"><label>Name</label><input type="text" id="p-name"></div>
+            <div class="field"><label>Category</label><input type="text" id="p-category" placeholder="homegoods, health, fashion..."></div>
+            <div class="field"><label>Daily Sales</label><input type="number" id="p-daily-sales"></div>
+            <div class="field"><label>Conversion Rate</label><input type="number" step="0.01" id="p-conversion" placeholder="0.15"></div>
+            <div class="field"><label>Competitors</label><input type="number" id="p-competitors"></div>
+            <div class="field"><label>Qualities (comma-sep)</label><input type="text" id="p-qualities" placeholder="wow_factor, solves_problem"></div>
+            <button type="button" class="btn-add-submit" onclick="addProduct()">Add Product</button>
+        </div>
+    </div>
+
+    <!-- ── Data: Add Supplier ─────────────────────────── -->
+    <div class="data-section">
+        <div class="data-section-title">Add Supplier</div>
+        <button class="btn-add-toggle" onclick="toggleForm('add-supplier-form')">+ Add Supplier</button>
+        <div class="add-form" id="add-supplier-form">
+            <div class="field"><label>Product Name (exact)</label><input type="text" id="s-product"></div>
+            <div class="field"><label>Supplier Name</label><input type="text" id="s-name"></div>
+            <div class="field"><label>Ships From</label><input type="text" id="s-ships" value="US"></div>
+            <div class="field"><label>Delivery Days</label><input type="number" id="s-delivery"></div>
+            <div class="field"><label>Reliability Score</label><input type="number" step="0.1" id="s-score" placeholder="4.5"></div>
+            <div class="field"><label>Unit Cost ($)</label><input type="number" step="0.01" id="s-cost"></div>
+            <button type="button" class="btn-add-submit" onclick="addSupplier()">Add Supplier</button>
+        </div>
+    </div>
+
+    <!-- ── Data: Add Ad ───────────────────────────────── -->
+    <div class="data-section">
+        <div class="data-section-title">Add Ad Reference</div>
+        <button class="btn-add-toggle" onclick="toggleForm('add-ad-form')">+ Add Ad</button>
+        <div class="add-form" id="add-ad-form">
+            <div class="field"><label>Product Name (exact)</label><input type="text" id="a-product"></div>
+            <div class="field"><label>URL</label><input type="text" id="a-url"></div>
+            <div class="field"><label>Hook Text</label><input type="text" id="a-hook"></div>
+            <div class="field"><label>Views</label><input type="number" id="a-views"></div>
+            <div class="field"><label>Engagement Rate</label><input type="number" step="0.01" id="a-engagement" placeholder="0.12"></div>
+            <button type="button" class="btn-add-submit" onclick="addAd()">Add Ad</button>
+        </div>
+    </div>
+
+</div>
+
+<div class="container">
+
+    <!-- Summary Stats -->
+    <div class="stats">
+        <div class="stat-card">
+            <div class="value">{{ summary.products_scanned }}</div>
+            <div class="label">Scanned</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">{{ summary.suppliers_matched }}</div>
+            <div class="label">Suppliers</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">{{ summary.creatives_generated }}</div>
+            <div class="label">Creatives</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">{{ summary.launched }}</div>
+            <div class="label">Launched</div>
+        </div>
+    </div>
+
+    <!-- Funnel -->
+    <div class="funnel">
+        <div class="funnel-step">
+            <div class="funnel-count">{{ summary.products_scanned }}</div>
+            <div class="funnel-label">Scout</div>
+        </div>
+        <div class="funnel-arrow">&#9654;</div>
+        <div class="funnel-step">
+            <div class="funnel-count">{{ summary.products_qualified }}</div>
+            <div class="funnel-label">Qualified</div>
+        </div>
+        <div class="funnel-arrow">&#9654;</div>
+        <div class="funnel-step">
+            <div class="funnel-count">{{ summary.suppliers_matched }}</div>
+            <div class="funnel-label">Sourced</div>
+        </div>
+        <div class="funnel-arrow">&#9654;</div>
+        <div class="funnel-step">
+            <div class="funnel-count">{{ summary.creatives_generated }}</div>
+            <div class="funnel-label">Creative</div>
+        </div>
+        <div class="funnel-arrow">&#9654;</div>
+        <div class="funnel-step">
+            <div class="funnel-count">{{ summary.launched }}</div>
+            <div class="funnel-label">Launched</div>
+        </div>
+    </div>
+
+    <!-- Phase 1: Scout -->
+    <div class="phase phase--scout">
+        <div class="phase-header">
+            <div class="phase-number">1</div>
+            <h2>Scout Agent</h2>
+            <div class="phase-desc">Kalodata / Fastmoss</div>
+        </div>
+        <div class="cards">
+            {% for p in scout_phase %}
+            <div class="card {{ '' if p.qualified else 'card--dimmed' }}">
+                <div class="card-name">
+                    {{ p.name }}
+                    <span class="badge badge--cat">{{ p.category }}</span>
+                </div>
+                <div class="card-row">
+                    <span class="label">Daily Sales</span>
+                    <span class="val">{{ p.daily_sales }}</span>
+                </div>
+                <div class="card-row">
+                    <span class="label">Conversion</span>
+                    <span class="val">{{ "%.0f"|format(p.conversion_rate * 100) }}%</span>
+                </div>
+                <div class="card-row">
+                    <span class="label">Competitors</span>
+                    <span class="val">{{ p.active_competitors }}</span>
+                </div>
+                {% if p.qualities %}
+                <div class="tags">
+                    {% for q in p.qualities %}
+                    <span class="tag">{{ q }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="card-status">
+                    {% if p.qualified %}
+                    <span class="badge badge--pass">Qualified</span>
+                    {% else %}
+                    <span class="badge badge--fail">Filtered Out</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Phase 2: Sourcing -->
+    <div class="phase phase--sourcing">
+        <div class="phase-header">
+            <div class="phase-number">2</div>
+            <h2>Sourcing Agent</h2>
+            <div class="phase-desc">AutoDS Marketplace</div>
+        </div>
+        <div class="cards">
+            {% for s in sourcing_phase %}
+            <div class="card">
+                <div class="card-name">{{ s.product_name }}</div>
+                <div class="card-row">
+                    <span class="label">Supplier</span>
+                    <span class="val">{{ s.supplier_name }}</span>
+                </div>
+                <div class="card-row">
+                    <span class="label">Ships From</span>
+                    <span class="val">{{ s.ships_from }}</span>
+                </div>
+                <div class="card-row">
+                    <span class="label">Delivery</span>
+                    <span class="val">{{ s.delivery_days }} days</span>
+                </div>
+                <div class="card-row">
+                    <span class="label">Reliability</span>
+                    <span class="val">{{ s.reliability_score }} / 5.0</span>
+                </div>
+                <div class="card-row">
+                    <span class="label">Unit Cost</span>
+                    <span class="val">${{ "%.2f"|format(s.unit_cost) }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Phase 3: Creative -->
+    <div class="phase phase--creative">
+        <div class="phase-header">
+            <div class="phase-number">3</div>
+            <h2>Creative Agent</h2>
+            <div class="phase-desc">Claude / PiPiAds</div>
+        </div>
+        <div class="cards">
+            {% for c in creative_phase %}
+            <div class="card">
+                <div class="card-name">{{ c.product_name }}</div>
+                <div class="script-label">Hook</div>
+                <div class="script-section">{{ c.hook }}</div>
+                <div class="script-label" style="margin-top:0.75rem">Body</div>
+                <div class="script-section">{{ c.body }}</div>
+                <div class="script-label" style="margin-top:0.75rem">CTA</div>
+                <div class="script-section">{{ c.cta }}</div>
+                {% if c.follow_up_plan %}
+                <div class="follow-up">
+                    <div class="script-label">Follow-Up Plan</div>
+                    <ul>
+                        {% for step in c.follow_up_plan %}
+                        <li>{{ step }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Phase 4: Launch -->
+    <div class="phase phase--launch">
+        <div class="phase-header">
+            <div class="phase-number">4</div>
+            <h2>Launch Agent</h2>
+            <div class="phase-desc">
+                {% if launch_phase %}{{ launch_phase[0].platform_label }}{% else %}TikTok Shop{% endif %}
+            </div>
+        </div>
+        <div class="cards">
+            {% for l in launch_phase %}
+            <div class="card">
+                <div class="card-name">{{ l.product_name }}</div>
+                <div class="seo-title">{{ l.seo_title }}</div>
+                <div class="price">${{ "%.2f"|format(l.listing_price) }}</div>
+                <div class="card-row">
+                    <span class="label">Margin (after all fees)</span>
+                    <span class="val">{{ "%.0f"|format(l.profit_margin * 100) }}%</span>
+                </div>
+                <div class="margin-bar-wrap">
+                    <div class="margin-bar {{ 'margin-bar--good' if l.launched else 'margin-bar--bad' }}"
+                         style="width: {{ (l.profit_margin * 100)|int }}%"></div>
+                </div>
+                {% if l.affiliate_commission > 0 %}
+                <div class="card-row">
+                    <span class="label">Affiliate Commission</span>
+                    <span class="val">{{ "%.0f"|format(l.affiliate_commission * 100) }}%</span>
+                </div>
+                <div class="card-row">
+                    <span class="label">Affiliate Payout</span>
+                    <span class="val">${{ "%.2f"|format(l.affiliate_payout) }} / sale</span>
+                </div>
+                {% endif %}
+                {% if l.launched %}
+                <div class="card-row">
+                    <span class="label">{{ l.platform_label }} ID</span>
+                    <span class="val">{{ l.product_id }}</span>
+                </div>
+                {% endif %}
+                <div class="card-status">
+                    {% if l.launched %}
+                    <span class="badge badge--pass">Launched on {{ l.platform_label }}</span>
+                    {% else %}
+                    <span class="badge badge--fail">Not Launched</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<script>
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('open');
+}
+
+function toggleGroup(el) {
+    el.classList.toggle('collapsed');
+    const body = el.nextElementSibling;
+    body.classList.toggle('hidden');
+}
+
+function toggleForm(id) {
+    document.getElementById(id).classList.toggle('visible');
+}
+
+async function deleteProduct(index) {
+    await fetch(`/api/products/${index}`, { method: 'DELETE' });
+    location.reload();
+}
+
+async function deleteSupplier(productName, index) {
+    await fetch(`/api/suppliers/${encodeURIComponent(productName)}/${index}`, { method: 'DELETE' });
+    location.reload();
+}
+
+async function deleteAd(productName, index) {
+    await fetch(`/api/ads/${encodeURIComponent(productName)}/${index}`, { method: 'DELETE' });
+    location.reload();
+}
+
+async function addProduct() {
+    const qualities = document.getElementById('p-qualities').value;
+    const product = {
+        name: document.getElementById('p-name').value,
+        category: document.getElementById('p-category').value,
+        daily_sales: parseInt(document.getElementById('p-daily-sales').value) || 0,
+        conversion_rate: parseFloat(document.getElementById('p-conversion').value) || 0,
+        active_competitors: parseInt(document.getElementById('p-competitors').value) || 0,
+        qualities: qualities ? qualities.split(',').map(s => s.trim()).filter(Boolean) : [],
+    };
+    await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(product),
+    });
+    location.reload();
+}
+
+async function addSupplier() {
+    const productName = document.getElementById('s-product').value;
+    const supplier = {
+        supplier_name: document.getElementById('s-name').value,
+        ships_from: document.getElementById('s-ships').value,
+        delivery_days: parseInt(document.getElementById('s-delivery').value) || 0,
+        reliability_score: parseFloat(document.getElementById('s-score').value) || 0,
+        unit_cost: parseFloat(document.getElementById('s-cost').value) || 0,
+    };
+    await fetch(`/api/suppliers/${encodeURIComponent(productName)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(supplier),
+    });
+    location.reload();
+}
+
+async function addAd() {
+    const productName = document.getElementById('a-product').value;
+    const ad = {
+        url: document.getElementById('a-url').value,
+        hook_text: document.getElementById('a-hook').value,
+        views: parseInt(document.getElementById('a-views').value) || 0,
+        engagement_rate: parseFloat(document.getElementById('a-engagement').value) || 0,
+    };
+    await fetch(`/api/ads/${encodeURIComponent(productName)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ad),
+    });
+    location.reload();
+}
+
+// ESC key closes sidebar
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('overlay').classList.remove('open');
+    }
+});
+</script>
+
+</body>
+</html>
