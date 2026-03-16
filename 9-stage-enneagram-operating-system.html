@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>9-Stage Enneagram Operating System — Choice Aura</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a0f;
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 22px;
+      letter-spacing: 4px;
+      color: #ffd700;
+      text-shadow: 0 0 20px rgba(255,215,0,0.4);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .subtitle {
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 2px;
+      margin-bottom: 30px;
+    }
+    .intro {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.7;
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 16px;
+      background: rgba(255,255,255,0.01);
+      margin-bottom: 20px;
+    }
+    .stage {
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.01);
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 6px;
+    }
+    .stage.current {
+      border-color: rgba(255,106,0,0.4);
+      background: rgba(255,106,0,0.08);
+    }
+    .stage.has-fail {
+      border-color: rgba(255,34,68,0.2);
+      background: rgba(255,34,68,0.04);
+    }
+    .stage-num {
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 16px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.3);
+    }
+    .stage.current .stage-num {
+      border-color: #ff6a00;
+      color: #ff6a00;
+      background: rgba(255,106,0,0.15);
+    }
+    .stage-body { flex: 1; }
+    .stage-name {
+      font-family: system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: #fff;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .stage.current .stage-name { color: #ff6a00; }
+    .current-tag {
+      font-size: 8px;
+      color: #ff6a00;
+      border: 1px solid #ff6a00;
+      padding: 1px 6px;
+      letter-spacing: 2px;
+    }
+    .stage-desc {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.6;
+    }
+    .fail-note {
+      margin-top: 8px;
+      font-size: 10px;
+      color: #ff2244;
+      font-family: 'Courier New', monospace;
+      line-height: 1.5;
+      padding: 8px 10px;
+      border: 1px solid rgba(255,34,68,0.15);
+      background: rgba(255,34,68,0.04);
+    }
+    .principles {
+      margin-top: 24px;
+      border: 1px solid rgba(255,215,0,0.12);
+      background: rgba(255,215,0,0.02);
+      padding: 18px;
+    }
+    .principles-section {
+      margin-bottom: 16px;
+    }
+    .principles-section:last-child { margin-bottom: 0; }
+    .section-label {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: #ffd700;
+      margin-bottom: 8px;
+    }
+    .principles-text {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.8;
+    }
+    .footer {
+      margin-top: 30px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      font-size: 10px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>9-Stage Enneagram Operating System</h1>
+    <div class="subtitle">CHOICE AURA — PROPRIETARY FRAMEWORK — BACKUP COPY</div>
+
+    <div class="intro">
+      Based on Gurdjieff's Fourth Way / Law of Seven / Law of Three. Tyler has been working within this system for 2+ years. Applies to every project ("wheel") and wheels nest inside wheels.
+    </div>
+
+    <div class="stage">
+      <div class="stage-num">1</div>
+      <div class="stage-body">
+        <div class="stage-name">Intention</div>
+        <div class="stage-desc">Set the aim, total being engaged</div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-num">2</div>
+      <div class="stage-body">
+        <div class="stage-name">Tools</div>
+        <div class="stage-desc">Gather what's needed (teachers, ritual, finances, resources)</div>
+      </div>
+    </div>
+
+    <div class="stage has-fail">
+      <div class="stage-num">3</div>
+      <div class="stage-body">
+        <div class="stage-name">Passive / Personality</div>
+        <div class="stage-desc">Discover you don't know what to do. Hit limitation.</div>
+        <div class="fail-note">⚠ Point 3 Hard — "Did I just do tools, set an intention?" Got stuck not knowing what real action to take. Good time for ritual.</div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-num">4</div>
+      <div class="stage-body">
+        <div class="stage-name">Limitation</div>
+        <div class="stage-desc">Overcome limitations through creative means (repression, acceptance, clarity, lethargy, choices)</div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-num">5</div>
+      <div class="stage-body">
+        <div class="stage-name">Action</div>
+        <div class="stage-desc">Take action (prioritize, expand, create, practice)</div>
+      </div>
+    </div>
+
+    <div class="stage has-fail">
+      <div class="stage-num">6</div>
+      <div class="stage-body">
+        <div class="stage-name">Active / Essence</div>
+        <div class="stage-desc">Putting it all together. About to reveal publicly.</div>
+        <div class="fail-note">⚠ Point 6 Hard — "Did I just put everything together, about to reveal a new version of me/work?" Pulled back before going public.</div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-num">7</div>
+      <div class="stage-body">
+        <div class="stage-name">Presentation</div>
+        <div class="stage-desc">Present what has been created to the world. True character revealed.</div>
+      </div>
+    </div>
+
+    <div class="stage current has-fail">
+      <div class="stage-num">8</div>
+      <div class="stage-body">
+        <div class="stage-name">
+          Retention
+          <span class="current-tag">CURRENT</span>
+        </div>
+        <div class="stage-desc">Collect data, results, feedback. Prepare for next cycle. Surrender.</div>
+        <div class="fail-note">⚠ Point 8 Hard — "Did I bring a big release to world and then fallout or rejected?" The wheel dies from rejection/overwhelm.</div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-num">9</div>
+      <div class="stage-body">
+        <div class="stage-name">Neutral / Life</div>
+        <div class="stage-desc">Beginning of a new cycle. Return to intention.</div>
+      </div>
+    </div>
+
+    <div class="principles">
+      <div class="principles-section">
+        <div class="section-label">KEY PRINCIPLES</div>
+        <div class="principles-text">
+          "Hard is a sign things are working, off octave" · Life wheels run in 7-year cycles · From point 7 to 9 it's all about surrender · Wheels feed into other wheels; failures are incomplete cycles that feed forward
+        </div>
+      </div>
+      <div class="principles-section">
+        <div class="section-label">LAW OF THREE</div>
+        <div class="principles-text">
+          Active (affirming) · Passive (denying) · Neutral (reconciling) · Nothing can happen unless all three forces are present · "Everything, positive and negative, is working for us"
+        </div>
+      </div>
+      <div class="principles-section">
+        <div class="section-label">THE FORMULA</div>
+        <div class="principles-text">
+          yes, no, conflict, completion · Know + Thyself · CONFLICT + PURPOSE = AFFIRMING + DENYING + CONFLICT + UNITY (COMPLETION)
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      CHOICE AURA — PROPRIETARY — OFFLINE BACKUP — DO NOT PUBLISH
+    </div>
+  </div>
+</body>
+</html>
