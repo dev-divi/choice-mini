@@ -13,9 +13,8 @@ const BG = "#0a0a0f";
 
 // ─── DATA ────────────────────────────────────────────────────────────
 const REVENUE_PATHS = [
-  { amount: "TBD", label: "per session — FASTEST PATH IN", source: "1-on-1 Consulting — DMs → Calendly", status: "active" },
-  { amount: "$2-4", label: "per sale (5 vids/wk cap)", source: "TikTok Shop Affiliate — blocked: need sample $", status: "pending" },
-  { amount: "TBD", label: "per sale — system built", source: "Dropshipping AutoDS — blocked: need API $", status: "pending" },
+  { amount: "$2-4", label: "per sale (5 vids/wk cap)", source: "TikTok Shop Affiliate", status: "pending" },
+  { amount: "TBD", label: "per sale — system built", source: "Dropshipping AutoDS", status: "pending" },
   { amount: "$67", label: "per conversion", source: "TikTok Commission — Linktree", status: "live" },
   { amount: "8.5%", label: "per sale", source: "Amazon Affiliate — Linktree", status: "live" },
   { amount: "$25", label: "per sale", source: "CapCut Edits Tutorial", status: "active" },
@@ -31,8 +30,8 @@ const CONTENT_NODES = [
 ];
 
 const COMMERCE_NODES = [
-  { type: "job 2 — affiliate", name: "TikTok Shop Affiliate", detail: "5 videos/week cap\nEmbed products in main content — doesn't look like an ad\nBlocked: need $ to buy samples\nUnlocks with first consulting $", status: "pending", tag: "BLOCKED — NEED SAMPLE $" },
-  { type: "job 3 — dropshipping", name: "TikTok Shop Seller (AutoDS)", detail: "Full AI system built\nCan run parts manually without API keys\nBlocked: need $ for API keys + services\nSame unlock as Job 2", status: "pending", tag: "BLOCKED — NEED API $" },
+  { type: "job 2 — affiliate", name: "TikTok Shop Affiliate", detail: "5 videos/week cap\nEmbed products in main content — doesn't look like an ad", status: "pending", tag: null },
+  { type: "job 3 — dropshipping", name: "TikTok Shop Seller (AutoDS)", detail: "Full AI system built\nCan run parts manually without API keys", status: "pending", tag: null },
   { type: "storefront", name: "Shopify Store", detail: "choiceaurastore.myshopify.com\n3-month free trial active\nNeeds product + branding overhaul", status: "pending", tag: "NEEDS WORK" },
   { type: "link hub", name: "Linktree", detail: "linktr.ee/tylerchoice\n$67 TikTok commission\nAmazon affiliate 8.5%", status: "active", tag: "LIVE — EARNING" },
 ];
@@ -81,9 +80,9 @@ const TYLER_PROMPTS = [
 ];
 
 const THREE_JOBS = [
-  { num: "01", title: "1:1 Services", color: "#00ff88", status: "ACTIVE — MOVE NOW", unlock: "Already unlocked", detail: "Viral video established authority in niche. Warm DM leads sitting unworked. Consulting calls via Calendly. Content about using AI to make money = proof of work. This funds everything else.", blocker: null },
-  { num: "02", title: "TikTok Shop Affiliate", color: "#ff6a00", status: "BLOCKED — NEEDS $", unlock: "Unlocks with consulting $", detail: "5 videos/week cap. Embed products naturally into main content — doesn't look like an ad. Need $ to buy samples. Same products can go in main content and drive commission. Scales without extra effort.", blocker: "Need $ for product samples" },
-  { num: "03", title: "Dropshipping (AutoDS)", color: "#ff6a00", status: "SYSTEM BUILT — BLOCKED", unlock: "Unlocks with consulting $", detail: "Full AI automation system built. Can source, list, and fulfill without touching product. Can run parts manually while waiting for API keys. ID arriving unlocks seller account. High exponential upside.", blocker: "Need $ for API keys + services. ID in transit." },
+  { num: "01", title: "1:1 Services", color: "#00ff88", status: "ACTIVE — MOVE NOW", unlock: "Already unlocked", detail: "", blocker: null },
+  { num: "02", title: "TikTok Shop Affiliate", color: "#00ff88", status: "ACTIVE", unlock: "", detail: "5 videos/week cap. Embed products naturally into main content — doesn't look like an ad. Same products can go in main content and drive commission. Scales without extra effort.", blocker: null },
+  { num: "03", title: "Dropshipping (AutoDS)", color: "#ff6a00", status: "SYSTEM BUILT", unlock: "", detail: "Full AI automation system built. Can source, list, and fulfill without touching product. Can run parts manually while waiting for API keys. High exponential upside.", blocker: null },
 ];
 
 // ─── AGENTS DATA ──────────────────────────────────────────────────────
@@ -161,18 +160,6 @@ const AGENTS = [
 ];
 
 // ─── CODEX DATA ──────────────────────────────────────────────────────
-const ENNEAGRAM_STAGES = [
-  { num: 1, name: "Intention", desc: "Set the aim, total being engaged" },
-  { num: 2, name: "Tools", desc: "Gather what's needed (teachers, ritual, finances, resources)" },
-  { num: 3, name: "Passive/Personality", desc: "Discover you don't know what to do. Hit limitation.", fail: "Point 3 Hard — 'Did I just do tools, set an intention?' Got stuck not knowing what real action to take. Good time for ritual." },
-  { num: 4, name: "Limitation", desc: "Overcome limitations through creative means (repression, acceptance, clarity, lethargy, choices)" },
-  { num: 5, name: "Action", desc: "Take action (prioritize, expand, create, practice)" },
-  { num: 6, name: "Active/Essence", desc: "Putting it all together. About to reveal publicly.", fail: "Point 6 Hard — 'Did I just put everything together, about to reveal a new version of me/work?' Pulled back before going public." },
-  { num: 7, name: "Presentation", desc: "Present what has been created to the world. True character revealed." },
-  { num: 8, name: "Retention", desc: "Collect data, results, feedback. Prepare for next cycle. Surrender.", fail: "Point 8 Hard — 'Did I bring a big release to world and then fallout or rejected?' The wheel dies from rejection/overwhelm.", current: true },
-  { num: 9, name: "Neutral/Life", desc: "Beginning of a new cycle. Return to intention." },
-];
-
 const ACTIVE_WHEELS = [
   { name: "TikTok main (@tylerchoice)", platform: "TikTok", stage: "Point 8", notes: "1,510 followers. 22.8K total likes. Viral hit Day 20 (15.8K views). Day 29. Retention/data phase.", status: "active" },
   { name: "Nie account (@nie.aura)", platform: "TikTok", stage: "Ongoing", notes: "Worst videos go here. Failures that trained the skills for viral success.", status: "active" },
@@ -478,20 +465,13 @@ function ThreeJobsPanel() {
             </div>
             {open === i && (
               <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${job.color}20` }}>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 8 }}>{job.detail}</div>
+                {job.detail && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 8 }}>{job.detail}</div>}
                 {job.blocker && <div style={{ fontSize: 10, color: RED, fontFamily: "'Courier New', monospace", letterSpacing: 1 }}>⚠ {job.blocker}</div>}
-                <div style={{ fontSize: 10, color: job.color, fontFamily: "'Courier New', monospace", letterSpacing: 1, marginTop: 6 }}>→ {job.unlock}</div>
+                {job.unlock && <div style={{ fontSize: 10, color: job.color, fontFamily: "'Courier New', monospace", letterSpacing: 1, marginTop: 6 }}>→ {job.unlock}</div>}
               </div>
             )}
           </div>
         ))}
-      </div>
-      <div style={{ border: "1px solid #00ff8830", padding: "12px 18px", marginTop: 10, background: "#00ff8806", display: "flex", alignItems: "center", gap: 14 }}>
-        <div style={{ fontFamily: "'Courier New', monospace", fontSize: 22, color: GREEN, flexShrink: 0 }}>→</div>
-        <div>
-          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: GREEN, letterSpacing: 3 }}>CURRENT MOVE</div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", marginTop: 2 }}>Work the DMs. Book consulting calls. <strong style={{ color: GREEN }}>Consulting $ unlocks Job 02 + Job 03.</strong> Everything else waits.</div>
-        </div>
       </div>
     </div>
   );
@@ -506,17 +486,9 @@ function InfrastructureView() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
         {REVENUE_PATHS.map((r, i) => <RevenueCard key={i} r={r} />)}
       </div>
-      <SectionHeader>Content Infrastructure</SectionHeader>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
-        {CONTENT_NODES.map((n, i) => <NodeCard key={i} node={n} />)}
-      </div>
       <SectionHeader>Commerce Infrastructure</SectionHeader>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
         {COMMERCE_NODES.map((n, i) => <NodeCard key={i} node={n} />)}
-      </div>
-      <SectionHeader>Client Infrastructure</SectionHeader>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
-        {CLIENT_NODES.map((n, i) => <NodeCard key={i} node={n} />)}
       </div>
       <div style={{ textAlign: "center", margin: "30px 0 10px", padding: 20, border: "1px solid rgba(255,215,0,0.1)", background: "rgba(255,215,0,0.02)" }}>
         <div style={{ fontSize: 28 }}>🔥</div>
@@ -636,6 +608,11 @@ function PlayerView() {
         <div style={{ fontSize: 24 }}>🏆</div>
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 8, fontFamily: "'Courier New', monospace", letterSpacing: 2 }}>ACCOMPLISHMENTS TRACKING — COMING SOON</div>
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 4 }}>Every win gets logged here under your player profile.</div>
+      </div>
+
+      <SectionHeader>Content Infrastructure</SectionHeader>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+        {CONTENT_NODES.map((n, i) => <NodeCard key={i} node={n} />)}
       </div>
     </div>
   );
@@ -872,33 +849,6 @@ function CodexView() {
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>Claude's backend context + Tyler's operating manual. Last updated: March 2026 (Day 29)</div>
         </div>
       </div>
-
-      <CodexSection title="9-Stage Enneagram Operating System" accent={GOLD} defaultOpen={true}>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 14, lineHeight: 1.6 }}>Based on Gurdjieff's Fourth Way / Law of Seven / Law of Three. Tyler has been working within this system for 2+ years. Applies to every project ("wheel") and wheels nest inside wheels.</div>
-        <div style={{ display: "grid", gap: 6 }}>
-          {ENNEAGRAM_STAGES.map((s, i) => (
-            <div key={i} style={{ border: `1px solid ${s.current ? EMBER + "40" : s.fail ? RED + "20" : "rgba(255,255,255,0.06)"}`, padding: "10px 14px", background: s.current ? `${EMBER}08` : s.fail ? `${RED}04` : "rgba(255,255,255,0.01)", display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <div style={{ width: 28, height: 28, border: `1px solid ${s.current ? EMBER : "rgba(255,255,255,0.15)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "'Courier New', monospace", fontSize: 14, fontWeight: 900, color: s.current ? EMBER : "rgba(255,255,255,0.3)", background: s.current ? `${EMBER}15` : "transparent" }}>{s.num}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontFamily: "system-ui", fontWeight: 700, fontSize: 13, color: s.current ? EMBER : "#fff" }}>{s.name}</span>
-                  {s.current && <span style={{ fontSize: 8, color: EMBER, border: `1px solid ${EMBER}`, padding: "1px 6px", fontFamily: "'Courier New', monospace", letterSpacing: 2 }}>CURRENT</span>}
-                </div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
-                {s.fail && <div style={{ fontSize: 10, color: RED, marginTop: 6, fontFamily: "'Courier New', monospace", lineHeight: 1.5, padding: "6px 8px", border: `1px solid ${RED}15`, background: `${RED}04` }}>⚠ {s.fail}</div>}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginTop: 14, padding: 12, border: "1px solid rgba(255,215,0,0.12)", background: "rgba(255,215,0,0.02)", fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>
-          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: GOLD, marginBottom: 6 }}>KEY PRINCIPLES</div>
-          "Hard is a sign things are working, off octave" · Life wheels run in 7-year cycles · From point 7 to 9 it's all about surrender · Wheels feed into other wheels; failures are incomplete cycles that feed forward
-          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: GOLD, marginTop: 10, marginBottom: 6 }}>LAW OF THREE</div>
-          Active (affirming) · Passive (denying) · Neutral (reconciling) · Nothing can happen unless all three forces are present · "Everything, positive and negative, is working for us"
-          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: GOLD, marginTop: 10, marginBottom: 6 }}>THE FORMULA</div>
-          yes, no, conflict, completion · Know + Thyself · CONFLICT + PURPOSE = AFFIRMING + DENYING + CONFLICT + UNITY (COMPLETION)
-        </div>
-      </CodexSection>
 
       <CodexSection title="Current Position — Point 8 Retention/Surrender" accent={EMBER} defaultOpen={true}>
         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.8 }}>The viral video (Day 20, 15.8K+ views) was Point 7 — Presentation. Now in Point 8: collecting data, processing DMs, learning from feedback, surrendering outcomes. The danger is letting the wheel die at Point 8 from overwhelm, fear of disappointing people, or the emotional cost of holding space for 20+ strangers.</div>
@@ -1181,10 +1131,10 @@ export default function App() {
           <span style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: MAGENTA, border: `1px solid ${MAGENTA}`, padding: "2px 8px", letterSpacing: 2, textShadow: `0 0 8px ${MAGENTA}`, whiteSpace: "nowrap" }}>QUEST</span>
           <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>SOLVING THE <strong style={{ color: GOLD, textShadow: `0 0 12px ${GOLD}30` }}>INFINITE MONEY GLITCH</strong> — <strong style={{ color: GOLD }}>$100K / 2026</strong></span>
         </div>
-        {/* BLOCKER BAR */}
-        <div style={{ border: `1px solid ${RED}20`, padding: "8px 16px", marginBottom: 16, background: `${RED}04`, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <span style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: RED, border: `1px solid ${RED}`, padding: "2px 8px", letterSpacing: 2, whiteSpace: "nowrap" }}>BLOCKER</span>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>MASTER BLOCKER: Funds — consulting $ unlocks affiliate samples + AutoDS API keys + dropshipping. ID in transit (unlocks Seller account).</span>
+        {/* SUPPORT BAR */}
+        <div style={{ border: `1px solid ${GREEN}20`, padding: "8px 16px", marginBottom: 16, background: `${GREEN}04`, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <span style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: GREEN, border: `1px solid ${GREEN}`, padding: "2px 8px", letterSpacing: 2, whiteSpace: "nowrap" }}>SUPPORT</span>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>If this project has added value to your life, consider supporting it. Cash App: <strong style={{ color: GREEN }}>$HeavenIsGreen</strong></span>
         </div>
         {/* NAV TABS */}
         <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
