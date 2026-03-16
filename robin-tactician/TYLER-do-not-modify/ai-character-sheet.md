@@ -1,0 +1,1 @@
+plug in api keys and create characters at https://www.newcharactersheet.com/generate
