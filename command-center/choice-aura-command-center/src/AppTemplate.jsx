@@ -742,8 +742,8 @@ export default function AppTemplate() {
           <div style={{ border: `1px solid ${t.name === "clean" ? t.border : "rgba(0,240,255,0.2)"}`, padding: "14px 20px", marginBottom: 8, background: t.name === "clean" ? t.surface : "rgba(0,240,255,0.03)", borderRadius: t.name === "clean" ? t.radius : 0, boxShadow: t.name === "clean" ? t.shadow : "none", position: "relative", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
             {t.name === "hud" && <div style={{ position: "absolute", top: -1, left: 20, width: 200, height: 2, background: t.accent, boxShadow: `0 0 10px ${t.accent}` }} />}
             <div>
-              <GlitchTitle text="COMMAND CENTER" />
-              <div style={{ fontSize: t.name === "clean" ? 11 : 10, letterSpacing: t.name === "clean" ? 1 : 3, color: t.textMuted, marginTop: 2, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, textTransform: "uppercase" }}>Operator HUD — Your Operating System</div>
+              <GlitchTitle text="OPERATOR DASHBOARD" />
+              <div style={{ fontSize: t.name === "clean" ? 11 : 10, letterSpacing: t.name === "clean" ? 1 : 3, color: t.textMuted, marginTop: 2, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, textTransform: "uppercase" }}>Your life & business HQ — all in one place</div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
               <div style={{ display: "flex", gap: 16, fontSize: 11, color: t.textMuted, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono }}>
@@ -758,6 +758,24 @@ export default function AppTemplate() {
           <div style={{ border: `1px solid ${t.name === "clean" ? t.border : t.magenta + "30"}`, padding: "8px 16px", marginBottom: 10, background: t.name === "clean" ? t.surfaceAlt : `${t.magenta}05`, borderRadius: t.name === "clean" ? t.radius : 0, display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, fontSize: 9, color: t.magenta, border: `1px solid ${t.magenta + (t.name === "clean" ? "40" : "")}`, padding: "2px 8px", letterSpacing: 2, textShadow: t.name === "hud" ? `0 0 8px ${t.magenta}` : "none", borderRadius: t.name === "clean" ? 99 : 0, fontWeight: 700, textTransform: "uppercase", whiteSpace: "nowrap" }}>QUEST</span>
             <span style={{ fontSize: t.name === "clean" ? 13 : 13, color: t.textSub, fontStyle: t.name === "clean" ? "italic" : "normal", fontFamily: t.fontSans }}>Define your main quest here...</span>
+          </div>
+
+          {/* INTRO PANEL */}
+          <div style={{ border: `1px solid ${t.border}`, padding: "16px 20px", marginBottom: 10, background: t.name === "clean" ? t.surface : "rgba(255,255,255,0.01)", borderRadius: t.name === "clean" ? t.radius : 0, boxShadow: t.name === "clean" ? t.shadow : "none" }}>
+            <div style={{ display: "flex", gap: t.name === "clean" ? 32 : 40, flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <div style={{ fontSize: 9, color: t.textLabel, letterSpacing: 2, textTransform: "uppercase", fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, marginBottom: 6, fontWeight: 700 }}>What it is</div>
+                <div style={{ fontSize: t.name === "clean" ? 13 : 11, color: t.textSub, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, lineHeight: 1.7 }}>A personal dashboard. A life/business HQ. A command system.</div>
+              </div>
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <div style={{ fontSize: 9, color: t.textLabel, letterSpacing: 2, textTransform: "uppercase", fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, marginBottom: 6, fontWeight: 700 }}>What it does</div>
+                <div style={{ fontSize: t.name === "clean" ? 13 : 11, color: t.textSub, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, lineHeight: 1.7 }}>Tracks your jobs, revenue, agents, projects, and player profile — all in one place.</div>
+              </div>
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <div style={{ fontSize: 9, color: t.textLabel, letterSpacing: 2, textTransform: "uppercase", fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, marginBottom: 6, fontWeight: 700 }}>Who it's for</div>
+                <div style={{ fontSize: t.name === "clean" ? 13 : 11, color: t.textSub, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, lineHeight: 1.7 }}>Solo builders. AI-era operators. People running an online operation by themselves.</div>
+              </div>
+            </div>
           </div>
 
           {/* NAV TABS */}
@@ -780,7 +798,7 @@ export default function AppTemplate() {
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: 9, color: t.textLabel, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, letterSpacing: t.name === "clean" ? 1 : 2, textTransform: "uppercase" }}>Command Center — Template v1.0</div>
+            <div style={{ fontSize: 9, color: t.textLabel, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, letterSpacing: t.name === "clean" ? 1 : 2, textTransform: "uppercase" }}>Operator Dashboard — v1.0</div>
           </div>
         </div>
       </div>
