@@ -10,7 +10,7 @@ Master repository for Choice automation projects.
 AI-powered shop automation platform — 4-agent pipeline (Scout → Sourcing → Creative → Launch) that discovers trending products, finds suppliers, generates ad copy, and launches to Shopify. See `clark-backend-automation/CLAUDE.md` for full details.
 
 ### command-center/
-*(Coming soon)* — Central dashboard and control interface.
+Central dashboard and control interface — **LIVE**. React+Vite app (`choice-aura-command-center/`). Operator HUD with 8 tabs: Infrastructure, Projects, Agents, Player Profile, Game Blocks, Codex, Field Research, Strategies. Run with `npm run dev` inside `command-center/choice-aura-command-center/`.
 
 ## Repository Structure
 
@@ -26,7 +26,8 @@ choice-mini/
 │   ├── agents/                     # 4-agent pipeline
 │   ├── config/                     # Settings & thresholds
 │   └── SECOND_BRAIN/               # Research knowledge base
-└── command-center/                 # New project (TBD)
+└── command-center/                 # Operator HUD dashboard (LIVE)
+    └── choice-aura-command-center/ # React+Vite app (npm run dev)
 ```
 
 ## Conventions
