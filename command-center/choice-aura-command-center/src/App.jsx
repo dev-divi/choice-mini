@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 
 const CYAN = "#00f0ff";
 const MAGENTA = "#ff0066";
@@ -10,6 +10,41 @@ const VIOLET = "#a855f7";
 const TEAL = "#00d4aa";
 const LIME = "#aaff00";
 const BG = "#0a0a0f";
+
+// ─── THEME SYSTEM ────────────────────────────────────────────────────
+const CLEAN = {
+  name: "clean",
+  bg: "#f7f3ec", surface: "#ffffff", surfaceAlt: "#f2ede4",
+  surfaceHover: "#ede7dc", border: "#ddd6c8", borderMed: "#c8bfb2",
+  text: "#2a2520", textSub: "#5a534a", textMuted: "#8a8078", textLabel: "#a09080", textFaint: "#c8bfb2",
+  c: "#1a7a8a", g: "#9e7b2f", gr: "#2e7a50", mg: "#9a3060", em: "#b05028", re: "#c03030", vi: "#7040b0", te: "#2a7060", li: "#608020",
+  fontBody: "system-ui, -apple-system, sans-serif", fontMono: "'Courier New', monospace",
+};
+const HUD = {
+  name: "hud",
+  bg: "#0a0a0f", surface: "rgba(255,255,255,0.015)", surfaceAlt: "rgba(255,255,255,0.01)",
+  surfaceHover: "rgba(0,240,255,0.06)", border: "rgba(255,255,255,0.08)", borderMed: "rgba(255,255,255,0.15)",
+  text: "#e0e0e0", textSub: "rgba(255,255,255,0.5)", textMuted: "rgba(255,255,255,0.35)", textLabel: "rgba(255,255,255,0.25)", textFaint: "rgba(255,255,255,0.12)",
+  c: CYAN, g: GOLD, gr: GREEN, mg: MAGENTA, em: EMBER, re: RED, vi: VIOLET, te: TEAL, li: LIME,
+  fontBody: "system-ui, sans-serif", fontMono: "'Courier New', monospace",
+};
+const ThemeCtx = createContext(HUD);
+const useT = () => useContext(ThemeCtx);
+
+function ThemeToggle({ theme, onToggle }) {
+  const isClean = theme === "clean";
+  return (
+    <button onClick={onToggle} style={{
+      background: isClean ? "rgba(0,240,255,0.06)" : "rgba(247,243,236,0.08)",
+      border: isClean ? "1px solid rgba(0,240,255,0.3)" : "1px solid rgba(247,243,236,0.3)",
+      color: isClean ? CYAN : "#8a7a6a",
+      fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2,
+      padding: "6px 14px", cursor: "pointer", textTransform: "uppercase", transition: "all 0.3s",
+    }}>
+      {isClean ? "⚡ HUD MODE" : "◈ CLEAN MODE"}
+    </button>
+  );
+}
 
 // ─── DATA ────────────────────────────────────────────────────────────
 const REVENUE_PATHS = [
@@ -308,14 +343,19 @@ const CODEX_PROMPTS = [
 ];
 
 // ─── HELPERS ─────────────────────────────────────────────────────────
-const statusColor = (s) => {
-  if (s === "active" || s === "live" || s === "deployed") return GREEN;
-  if (s === "in progress") return CYAN;
-  if (s === "complete") return GOLD;
-  if (s === "new" || s === "just unlocked") return MAGENTA;
-  if (s === "pending" || s === "planning" || s === "due tonight" || s === "scheduled") return EMBER;
-  if (s === "not started" || s === "uncreated" || s === "queued" || s === "not deployed") return "rgba(255,255,255,0.2)";
-  return "rgba(255,255,255,0.15)";
+const statusColor = (s, t) => {
+  const g = t?.name === "clean" ? t.gr : GREEN;
+  const c = t?.name === "clean" ? t.c : CYAN;
+  const gold = t?.name === "clean" ? t.g : GOLD;
+  const m = t?.name === "clean" ? t.mg : MAGENTA;
+  const e = t?.name === "clean" ? t.em : EMBER;
+  if (s === "active" || s === "live" || s === "deployed") return g;
+  if (s === "in progress") return c;
+  if (s === "complete") return gold;
+  if (s === "new" || s === "just unlocked") return m;
+  if (s === "pending" || s === "planning" || s === "due tonight" || s === "scheduled") return e;
+  if (s === "not started" || s === "uncreated" || s === "queued" || s === "not deployed") return t?.name === "clean" ? t.textFaint : "rgba(255,255,255,0.2)";
+  return t?.name === "clean" ? t.textFaint : "rgba(255,255,255,0.15)";
 };
 
 const tagStyle = (s) => {
@@ -353,120 +393,139 @@ function PulsingDot({ color, size = 8 }) {
 }
 
 function NavTab({ label, active, onClick, accent = CYAN }) {
+  const t = useT();
   return (
-    <button onClick={onClick} style={{ background: active ? `${accent}12` : "transparent", border: `1px solid ${active ? accent + "50" : "rgba(255,255,255,0.08)"}`, color: active ? accent : "rgba(255,255,255,0.4)", fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 3, padding: "8px 16px", cursor: "pointer", textTransform: "uppercase", transition: "all 0.3s", position: "relative", textShadow: active ? `0 0 8px ${accent}40` : "none" }}>
-      {active && <div style={{ position: "absolute", top: -1, left: 10, right: 10, height: 2, background: accent, boxShadow: `0 0 8px ${accent}` }} />}
+    <button onClick={onClick} style={{
+      background: active ? `${accent}${t.name === "clean" ? "18" : "12"}` : t.surface,
+      border: `1px solid ${active ? accent + (t.name === "clean" ? "70" : "50") : t.border}`,
+      color: active ? accent : t.textMuted,
+      fontFamily: t.fontMono, fontSize: 10, letterSpacing: 3, padding: "8px 16px",
+      cursor: "pointer", textTransform: "uppercase", transition: "all 0.3s", position: "relative",
+      textShadow: active && t.name === "hud" ? `0 0 8px ${accent}40` : "none",
+    }}>
+      {active && t.name === "hud" && <div style={{ position: "absolute", top: -1, left: 10, right: 10, height: 2, background: accent, boxShadow: `0 0 8px ${accent}` }} />}
+      {active && t.name === "clean" && <div style={{ position: "absolute", bottom: -1, left: 10, right: 10, height: 2, background: accent }} />}
       {label}
     </button>
   );
 }
 
-function SectionHeader({ children, color = CYAN }) {
+function SectionHeader({ children, color }) {
+  const t = useT();
+  const c = color || t.c;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "28px 0 14px", paddingBottom: 6, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-      <div style={{ width: 6, height: 6, background: color, boxShadow: `0 0 8px ${color}`, flexShrink: 0 }} />
-      <span style={{ fontFamily: "'Courier New', monospace", fontSize: 11, letterSpacing: 5, color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>{children}</span>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "28px 0 14px", paddingBottom: 6, borderBottom: `1px solid ${t.border}` }}>
+      <div style={{ width: 6, height: 6, background: c, boxShadow: t.name === "hud" ? `0 0 8px ${c}` : "none", flexShrink: 0 }} />
+      <span style={{ fontFamily: t.fontMono, fontSize: 11, letterSpacing: 5, color: t.textLabel, textTransform: "uppercase" }}>{children}</span>
     </div>
   );
 }
 
 function NodeCard({ node }) {
+  const t = useT();
   const [hovered, setHovered] = useState(false);
-  const sc = statusColor(node.status);
+  const sc = statusColor(node.status, t);
   return (
-    <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ border: `1px solid ${hovered ? CYAN + "40" : "rgba(255,255,255,0.08)"}`, padding: 16, position: "relative", background: hovered ? `${CYAN}06` : "rgba(255,255,255,0.015)", transition: "all 0.3s", transform: hovered ? "translateY(-2px)" : "none", minHeight: 120 }}>
+    <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ border: `1px solid ${hovered ? t.c + (t.name === "clean" ? "50" : "40") : t.border}`, padding: 16, position: "relative", background: hovered ? t.surfaceHover : t.surface, transition: "all 0.3s", transform: hovered ? "translateY(-2px)" : "none", minHeight: 120, boxShadow: hovered ? (t.name === "clean" ? "0 4px 16px rgba(0,0,0,0.1)" : "none") : "none" }}>
       <div style={{ position: "absolute", top: 10, right: 12 }}><PulsingDot color={sc} /></div>
-      <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, letterSpacing: 3, color: "rgba(255,255,255,0.2)", marginBottom: 6, textTransform: "uppercase" }}>{node.type}</div>
-      <div style={{ fontFamily: "system-ui", fontWeight: 700, fontSize: 16, color: "#fff", marginBottom: 4 }}>{node.name}</div>
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, whiteSpace: "pre-line" }}>{node.detail}</div>
-      {node.tag && <div style={{ ...tagStyle(node.status), marginTop: 8 }}>{node.tag}</div>}
+      <div style={{ fontFamily: t.fontMono, fontSize: 8, letterSpacing: 3, color: t.textLabel, marginBottom: 6, textTransform: "uppercase" }}>{node.type}</div>
+      <div style={{ fontFamily: t.fontBody, fontWeight: 700, fontSize: 16, color: t.text, marginBottom: 4 }}>{node.name}</div>
+      <div style={{ fontSize: 11, color: t.textMuted, lineHeight: 1.6, whiteSpace: "pre-line" }}>{node.detail}</div>
+      {node.tag && <div style={{ color: sc, border: `1px solid ${sc}`, padding: "2px 8px", fontSize: 9, letterSpacing: 2, fontFamily: t.fontMono, textTransform: "uppercase", display: "inline-block", marginTop: 8 }}>{node.tag}</div>}
     </div>
   );
 }
 
 function RevenueCard({ r }) {
+  const t = useT();
   const [hovered, setHovered] = useState(false);
   return (
-    <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ border: `1px solid ${hovered ? GOLD + "40" : "rgba(255,215,0,0.15)"}`, padding: "14px 18px", background: hovered ? "rgba(255,215,0,0.04)" : "rgba(255,215,0,0.02)", transition: "all 0.3s", textAlign: "center", transform: hovered ? "translateY(-2px)" : "none" }}>
-      <div style={{ fontFamily: "'Courier New', monospace", fontWeight: 900, fontSize: 26, color: GOLD, textShadow: `0 0 20px ${GOLD}30` }}>{r.amount}</div>
-      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", letterSpacing: 1, marginTop: 2 }}>{r.label}</div>
-      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 6, fontFamily: "system-ui" }}>{r.source}</div>
+    <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{ border: `1px solid ${hovered ? t.g + (t.name === "clean" ? "80" : "40") : t.name === "clean" ? t.border : "rgba(255,215,0,0.15)"}`, padding: "14px 18px", background: hovered ? (t.name === "clean" ? t.surfaceHover : "rgba(255,215,0,0.04)") : t.surface, transition: "all 0.3s", textAlign: "center", transform: hovered ? "translateY(-2px)" : "none", boxShadow: hovered && t.name === "clean" ? "0 4px 16px rgba(0,0,0,0.1)" : "none" }}>
+      <div style={{ fontFamily: t.fontMono, fontWeight: 900, fontSize: 26, color: t.g, textShadow: t.name === "hud" ? `0 0 20px ${GOLD}30` : "none" }}>{r.amount}</div>
+      <div style={{ fontSize: 10, color: t.textMuted, letterSpacing: 1, marginTop: 2 }}>{r.label}</div>
+      <div style={{ fontSize: 11, color: t.textSub, marginTop: 6, fontFamily: t.fontBody }}>{r.source}</div>
     </div>
   );
 }
 
 function ProjectCard({ project, accent = CYAN }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
-  const sc = statusColor(project.status);
+  const sc = statusColor(project.status, t);
   return (
-    <div onClick={() => setOpen(!open)} style={{ border: `1px solid ${open ? accent + "30" : "rgba(255,255,255,0.06)"}`, padding: "14px 16px", background: open ? `${accent}06` : "rgba(255,255,255,0.01)", cursor: "pointer", transition: "all 0.3s", marginBottom: 8 }}>
+    <div onClick={() => setOpen(!open)} style={{ border: `1px solid ${open ? accent + (t.name === "clean" ? "50" : "30") : t.border}`, padding: "14px 16px", background: open ? (t.name === "clean" ? t.surfaceHover : `${accent}06`) : t.surface, cursor: "pointer", transition: "all 0.3s", marginBottom: 8, boxShadow: open && t.name === "clean" ? "0 2px 12px rgba(0,0,0,0.08)" : "none" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ fontSize: 18 }}>{project.icon}</span>
-          <span style={{ fontFamily: "system-ui", fontWeight: 700, fontSize: 14, color: "#fff" }}>{project.name}</span>
+          <span style={{ fontFamily: t.fontBody, fontWeight: 700, fontSize: 14, color: t.text }}>{project.name}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <PulsingDot color={sc} size={6} />
-          <span style={{ ...tagStyle(project.status) }}>{project.status}</span>
-          <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 12, transform: open ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>▶</span>
+          <span style={{ color: sc, border: `1px solid ${sc}`, padding: "2px 8px", fontSize: 9, letterSpacing: 2, fontFamily: t.fontMono, textTransform: "uppercase", display: "inline-block" }}>{project.status}</span>
+          <span style={{ color: t.textLabel, fontSize: 12, transform: open ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>▶</span>
         </div>
       </div>
-      {open && <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, whiteSpace: "pre-line" }}>{project.desc}</div>}
+      {open && <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${t.border}`, fontSize: 12, color: t.textMuted, lineHeight: 1.7, whiteSpace: "pre-line", fontFamily: t.fontBody }}>{project.desc}</div>}
     </div>
   );
 }
 
 function ProgressBar({ value, max, color = CYAN, label }) {
+  const t = useT();
   const pct = Math.min((value / max) * 100, 100);
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", letterSpacing: 1, fontFamily: "'Courier New', monospace" }}>{label}</span>
-        <span style={{ fontSize: 10, color, fontFamily: "'Courier New', monospace" }}>{value}/{max}</span>
+        <span style={{ fontSize: 10, color: t.textLabel, letterSpacing: 1, fontFamily: t.fontMono }}>{label}</span>
+        <span style={{ fontSize: 10, color, fontFamily: t.fontMono }}>{value}/{max}</span>
       </div>
-      <div style={{ height: 4, background: "rgba(255,255,255,0.06)" }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: color, boxShadow: `0 0 8px ${color}40`, transition: "width 0.5s" }} />
+      <div style={{ height: 4, background: t.border }}>
+        <div style={{ height: "100%", width: `${pct}%`, background: color, boxShadow: t.name === "hud" ? `0 0 8px ${color}40` : "none", transition: "width 0.5s" }} />
       </div>
     </div>
   );
 }
 
 function CodexSection({ title, accent = EMBER, children, defaultOpen = false }) {
+  const t = useT();
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div style={{ marginBottom: 8 }}>
-      <div onClick={() => setOpen(!open)} style={{ border: `1px solid ${open ? accent + "30" : "rgba(255,255,255,0.06)"}`, padding: "12px 16px", background: open ? `${accent}06` : "rgba(255,255,255,0.01)", cursor: "pointer", transition: "all 0.3s", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div onClick={() => setOpen(!open)} style={{ border: `1px solid ${open ? accent + (t.name === "clean" ? "50" : "30") : t.border}`, padding: "12px 16px", background: open ? (t.name === "clean" ? t.surfaceHover : `${accent}06`) : t.surface, cursor: "pointer", transition: "all 0.3s", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 6, height: 6, background: accent, boxShadow: `0 0 6px ${accent}`, flexShrink: 0 }} />
-          <span style={{ fontFamily: "'Courier New', monospace", fontSize: 11, letterSpacing: 3, color: open ? accent : "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>{title}</span>
+          <div style={{ width: 6, height: 6, background: accent, boxShadow: t.name === "hud" ? `0 0 6px ${accent}` : "none", flexShrink: 0 }} />
+          <span style={{ fontFamily: t.fontMono, fontSize: 11, letterSpacing: 3, color: open ? accent : t.textMuted, textTransform: "uppercase" }}>{title}</span>
         </div>
-        <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 12, transform: open ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>▶</span>
+        <span style={{ color: t.textLabel, fontSize: 12, transform: open ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>▶</span>
       </div>
-      {open && <div style={{ border: `1px solid ${accent}15`, borderTop: "none", padding: 16, background: "rgba(255,255,255,0.01)" }}>{children}</div>}
+      {open && <div style={{ border: `1px solid ${accent}${t.name === "clean" ? "25" : "15"}`, borderTop: "none", padding: 16, background: t.surfaceAlt }}>{children}</div>}
     </div>
   );
 }
 
 // ─── TAB VIEWS ───────────────────────────────────────────────────────
 function ThreeJobsPanel() {
+  const t = useT();
   const [open, setOpen] = useState(null);
   return (
     <div style={{ marginBottom: 20 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 10 }}>
         {THREE_JOBS.map((job, i) => (
-          <div key={i} onClick={() => setOpen(open === i ? null : i)} style={{ border: `1px solid ${job.color}30`, padding: 16, background: `${job.color}05`, cursor: "pointer", transition: "all 0.3s", boxShadow: open === i ? `0 0 20px ${job.color}15` : "none" }}>
+          <div key={i} onClick={() => setOpen(open === i ? null : i)} style={{ border: `1px solid ${job.color}30`, padding: 16, background: t.name === "clean" ? t.surface : `${job.color}05`, cursor: "pointer", transition: "all 0.3s", boxShadow: open === i ? `0 0 20px ${job.color}15` : "none" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div style={{ fontFamily: "'Courier New', monospace", fontSize: 28, fontWeight: 900, color: `${job.color}40`, lineHeight: 1 }}>JOB {job.num}</div>
-                <div style={{ fontFamily: "system-ui", fontWeight: 800, fontSize: 16, color: "#fff", marginTop: 4 }}>{job.title}</div>
+                <div style={{ fontFamily: "'Courier New', monospace", fontSize: 28, fontWeight: 900, color: t.name === "clean" ? job.color + "90" : job.color + "40", lineHeight: 1 }}>JOB {job.num}</div>
+                <div style={{ fontFamily: "system-ui", fontWeight: 800, fontSize: 16, color: t.text, marginTop: 4 }}>{job.title}</div>
                 <div style={{ fontSize: 9, color: job.color, fontFamily: "'Courier New', monospace", letterSpacing: 2, marginTop: 4 }}>{job.status}</div>
               </div>
               <PulsingDot color={job.color} size={8} />
             </div>
             {open === i && (
               <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${job.color}20` }}>
-                {job.detail && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 8 }}>{job.detail}</div>}
-                {job.blocker && <div style={{ fontSize: 10, color: RED, fontFamily: "'Courier New', monospace", letterSpacing: 1 }}>⚠ {job.blocker}</div>}
+                {job.detail && <div style={{ fontSize: 12, color: t.textSub, lineHeight: 1.7, marginBottom: 8 }}>{job.detail}</div>}
+                {job.blocker && <div style={{ fontSize: 10, color: t.re, fontFamily: "'Courier New', monospace", letterSpacing: 1 }}>⚠ {job.blocker}</div>}
                 {job.unlock && <div style={{ fontSize: 10, color: job.color, fontFamily: "'Courier New', monospace", letterSpacing: 1, marginTop: 6 }}>→ {job.unlock}</div>}
               </div>
             )}
@@ -478,6 +537,7 @@ function ThreeJobsPanel() {
 }
 
 function InfrastructureView() {
+  const t = useT();
   return (
     <div>
       <SectionHeader>Three Jobs — Current Situation</SectionHeader>
@@ -490,16 +550,17 @@ function InfrastructureView() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
         {COMMERCE_NODES.map((n, i) => <NodeCard key={i} node={n} />)}
       </div>
-      <div style={{ textAlign: "center", margin: "30px 0 10px", padding: 20, border: "1px solid rgba(255,215,0,0.1)", background: "rgba(255,215,0,0.02)" }}>
+      <div style={{ textAlign: "center", margin: "30px 0 10px", padding: 20, border: `1px solid ${t.name === "clean" ? t.border : "rgba(255,215,0,0.1)"}`, background: t.name === "clean" ? t.surfaceAlt : "rgba(255,215,0,0.02)" }}>
         <div style={{ fontSize: 28 }}>🔥</div>
-        <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 3, color: `${GOLD}80`, marginTop: 6 }}>BONFIRE LIT — POINT 8 SURRENDER</div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginTop: 4, fontStyle: "italic" }}>"I let go, and it turns out this was already done for me."</div>
+        <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 3, color: t.g, marginTop: 6 }}>BONFIRE LIT — POINT 8 SURRENDER</div>
+        <div style={{ fontSize: 11, color: t.textMuted, marginTop: 4, fontStyle: "italic" }}>"I let go, and it turns out this was already done for me."</div>
       </div>
     </div>
   );
 }
 
 function ProjectsView() {
+  const t = useT();
   return (
     <div>
       <SectionHeader>External Projects — Revenue Generating</SectionHeader>
@@ -508,12 +569,12 @@ function ProjectsView() {
       {INTERNAL_PROJECTS.map((p, i) => <ProjectCard key={i} project={p} accent={CYAN} />)}
       <SectionHeader>AI Outsource Mini-Projects</SectionHeader>
       {MINI_PROJECTS.map((p, i) => (
-        <div key={i} style={{ border: "1px solid rgba(255,255,255,0.05)", padding: "12px 16px", marginBottom: 6, background: "rgba(255,255,255,0.01)" }}>
+        <div key={i} style={{ border: `1px solid ${t.border}`, padding: "12px 16px", marginBottom: 6, background: t.surface }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", fontFamily: "system-ui" }}>▸ {p.name}</span>
+            <span style={{ fontSize: 13, color: t.textSub, fontFamily: t.fontBody }}>▸ {p.name}</span>
             <span style={tagStyle("queued")}>{p.status}</span>
           </div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>{p.desc}</div>
+          <div style={{ fontSize: 11, color: t.textMuted, marginTop: 6 }}>{p.desc}</div>
         </div>
       ))}
     </div>
@@ -521,6 +582,7 @@ function ProjectsView() {
 }
 
 function PlayerView() {
+  const t = useT();
   const activeContent = CONTENT_NODES.filter(n => n.status === "active").length;
   const totalContent = CONTENT_NODES.length;
   const activeCommerce = COMMERCE_NODES.filter(n => n.status === "active" || n.status === "new").length;
@@ -535,14 +597,14 @@ function PlayerView() {
         <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
           <div style={{ width: 80, height: 80, border: `2px solid ${CYAN}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, background: `${CYAN}08`, flexShrink: 0 }}>⚡</div>
           <div style={{ flex: 1, minWidth: 200 }}>
-            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, letterSpacing: 4, color: "rgba(255,255,255,0.2)" }}>OPERATOR</div>
-            <div style={{ fontFamily: "system-ui", fontWeight: 900, fontSize: 28, color: "#fff", marginBottom: 2 }}>TYLER CHOICE</div>
+            <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, letterSpacing: 4, color: t.textLabel }}>OPERATOR</div>
+            <div style={{ fontFamily: t.fontBody, fontWeight: 900, fontSize: 28, color: t.text, marginBottom: 2 }}>TYLER CHOICE</div>
             <div style={{ fontSize: 12, color: GOLD, fontFamily: "'Courier New', monospace", letterSpacing: 2 }}>CHOICE AURA — FOUNDER</div>
             <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
               {[["29", "DAY", CYAN], ["1,510", "FOLLOWERS", GOLD], ["22.8K", "LIKES", GREEN], ["1,100", "BOOKMARKS", MAGENTA]].map(([val, lbl, col], i) => (
                 <div key={i} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 22, fontWeight: 900, color: col, fontFamily: "'Courier New', monospace" }}>{val}</div>
-                  <div style={{ fontSize: 8, color: "rgba(255,255,255,0.3)", letterSpacing: 2 }}>{lbl}</div>
+                  <div style={{ fontSize: 8, color: t.textMuted, letterSpacing: 2 }}>{lbl}</div>
                 </div>
               ))}
             </div>
@@ -562,15 +624,15 @@ function PlayerView() {
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
             <div style={{ width: 48, height: 48, border: `1px solid ${GOLD}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, background: `${GOLD}08`, flexShrink: 0 }}>🎤</div>
             <div>
-              <div style={{ fontFamily: "system-ui", fontWeight: 900, fontSize: 20, color: "#fff" }}>TYLER</div>
+              <div style={{ fontFamily: t.fontBody, fontWeight: 900, fontSize: 20, color: t.text }}>TYLER</div>
               <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 3, color: `${GOLD}90` }}>OPERATOR DOSSIER</div>
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
             {[
-              { label: "GIFTS", color: GREEN, content: <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", fontFamily: "system-ui" }}>Voice</div> },
-              { label: "PURPOSE", color: CYAN, content: <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>Help people understand themselves, find out who they are</div> },
-              { label: "AI BACKGROUND", color: MAGENTA, content: <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>Grappling with AI ethics for a decade, Computer Information Systems</div> },
+              { label: "GIFTS", color: GREEN, content: <div style={{ fontSize: 16, fontWeight: 700, color: t.text, fontFamily: t.fontBody }}>Voice</div> },
+              { label: "PURPOSE", color: CYAN, content: <div style={{ fontSize: 12, color: t.textSub, lineHeight: 1.6 }}>Help people understand themselves, find out who they are</div> },
+              { label: "AI BACKGROUND", color: MAGENTA, content: <div style={{ fontSize: 12, color: t.textSub, lineHeight: 1.6 }}>Grappling with AI ethics for a decade, Computer Information Systems</div> },
               { label: "IDEOLOGY", color: GOLD, content: <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{["Freedom", "Inspiration", "Liberation"].map((v, i) => <span key={i} style={{ fontSize: 10, color: GOLD, border: `1px solid ${GOLD}30`, padding: "2px 8px", fontFamily: "'Courier New', monospace" }}>{v}</span>)}</div> },
             ].map((card, i) => (
               <div key={i} style={{ border: `1px solid ${card.color}15`, padding: 14, background: `${card.color}04` }}>
@@ -578,13 +640,13 @@ function PlayerView() {
                 {card.content}
               </div>
             ))}
-            <div style={{ border: "1px solid rgba(255,255,255,0.08)", padding: 14, background: "rgba(255,255,255,0.015)", gridColumn: "1 / -1" }}>
-              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, letterSpacing: 3, color: "rgba(255,255,255,0.35)", marginBottom: 8 }}>◆ PERSONAL GOALS</div>
+            <div style={{ border: `1px solid ${t.border}`, padding: 14, background: t.surface, gridColumn: "1 / -1" }}>
+              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, letterSpacing: 3, color: t.textMuted, marginBottom: 8 }}>◆ PERSONAL GOALS</div>
               <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
                 {[["Awareness", CYAN], ["Consciousness", MAGENTA], ["Self-Realization", GOLD]].map(([g, c], i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ width: 4, height: 4, background: c, boxShadow: `0 0 6px ${c}` }} />
-                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", fontFamily: "system-ui", fontWeight: 600 }}>{g}</span>
+                    <span style={{ fontSize: 13, color: t.textSub, fontFamily: t.fontBody, fontWeight: 600 }}>{g}</span>
                   </div>
                 ))}
               </div>
@@ -594,7 +656,7 @@ function PlayerView() {
       </div>
 
       <SectionHeader>Meta-Problem: Tyler's Operating System</SectionHeader>
-      <div style={{ border: "1px solid rgba(255,255,255,0.06)", padding: 16, background: "rgba(255,255,255,0.01)", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.8 }}>
+      <div style={{ border: `1px solid ${t.border}`, padding: 16, background: t.surface, fontSize: 12, color: t.textMuted, lineHeight: 1.8 }}>
         <div style={{ color: EMBER, fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 2, marginBottom: 8 }}>◆ CONTEXT WINDOW CONSTRAINTS</div>
         Too little direction → paralysis. Too much planning → paralysis.<br />
         <div style={{ color: CYAN, fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 2, marginTop: 12, marginBottom: 8 }}>◆ TYLER'S WORKFLOW</div>
@@ -604,10 +666,10 @@ function PlayerView() {
       </div>
 
       <SectionHeader>Mental Highlight Reel</SectionHeader>
-      <div style={{ border: `1px dashed ${GOLD}20`, padding: 20, textAlign: "center", background: "rgba(255,215,0,0.01)" }}>
+      <div style={{ border: `1px dashed ${GOLD}20`, padding: 20, textAlign: "center", background: t.surface }}>
         <div style={{ fontSize: 24 }}>🏆</div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 8, fontFamily: "'Courier New', monospace", letterSpacing: 2 }}>ACCOMPLISHMENTS TRACKING — COMING SOON</div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", marginTop: 4 }}>Every win gets logged here under your player profile.</div>
+        <div style={{ fontSize: 11, color: t.textMuted, marginTop: 8, fontFamily: "'Courier New', monospace", letterSpacing: 2 }}>ACCOMPLISHMENTS TRACKING — COMING SOON</div>
+        <div style={{ fontSize: 11, color: t.textLabel, marginTop: 4 }}>Every win gets logged here under your player profile.</div>
       </div>
 
       <SectionHeader>Content Infrastructure</SectionHeader>
@@ -619,6 +681,7 @@ function PlayerView() {
 }
 
 function GameBlocksView() {
+  const t = useT();
   return (
     <div>
       <SectionHeader>Master Block — Framework</SectionHeader>
@@ -627,36 +690,36 @@ function GameBlocksView() {
           <PulsingDot color={RED} />
           <span style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: RED, letterSpacing: 2 }}>THREAT LEVEL: CRITICAL</span>
         </div>
-        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.8 }}>
-          <strong style={{ color: "#fff" }}>MAIN PROBLEM:</strong> Collect Initial Resources — Need immediate money to begin using OpenClaw.<br />
-          <strong style={{ color: "#fff" }}>META-PROBLEM:</strong> Tyler — limited mental resources, context window, intrinsic motivators, scope creep threat.
+        <div style={{ fontSize: 13, color: t.textSub, lineHeight: 1.8 }}>
+          <strong style={{ color: t.text }}>MAIN PROBLEM:</strong> Collect Initial Resources — Need immediate money to begin using OpenClaw.<br />
+          <strong style={{ color: t.text }}>META-PROBLEM:</strong> Tyler — limited mental resources, context window, intrinsic motivators, scope creep threat.
         </div>
       </div>
       <SectionHeader>Get Rich Operating Principles</SectionHeader>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
         {OPERATING_PRINCIPLES.map((p, i) => (
-          <div key={i} style={{ border: "1px solid rgba(255,215,0,0.12)", padding: 14, background: "rgba(255,215,0,0.02)" }}>
+          <div key={i} style={{ border: `1px solid ${t.name === "clean" ? t.border : "rgba(255,215,0,0.12)"}`, padding: 14, background: t.name === "clean" ? t.surfaceAlt : "rgba(255,215,0,0.02)" }}>
             <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: GOLD, letterSpacing: 2, marginBottom: 6 }}>{p.title}</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>{p.desc}</div>
+            <div style={{ fontSize: 11, color: t.textMuted, lineHeight: 1.6 }}>{p.desc}</div>
           </div>
         ))}
       </div>
       <SectionHeader>Tyler's Prompts Vault</SectionHeader>
       {TYLER_PROMPTS.map((p, i) => (
-        <div key={i} style={{ border: "1px solid rgba(0,240,255,0.08)", padding: "10px 14px", marginBottom: 6, background: "rgba(0,240,255,0.02)", fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'Courier New', monospace", lineHeight: 1.6 }}>
+        <div key={i} style={{ border: `1px solid ${t.name === "clean" ? t.border : "rgba(0,240,255,0.08)"}`, padding: "10px 14px", marginBottom: 6, background: t.surface, fontSize: 12, color: t.textSub, fontFamily: "'Courier New', monospace", lineHeight: 1.6 }}>
           <span style={{ color: CYAN, marginRight: 8 }}>›</span>{p}
         </div>
       ))}
       <SectionHeader>Game External Files — Services</SectionHeader>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         {["fastmoss", "Maxfusion.ai", "AUTODS", "Socialone", "SalesSpy", "Colordata"].map((s, i) => (
-          <div key={i} style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "8px 14px", fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'Courier New', monospace", letterSpacing: 1 }}>{s}</div>
+          <div key={i} style={{ border: `1px solid ${t.border}`, padding: "8px 14px", fontSize: 11, color: t.textMuted, fontFamily: "'Courier New', monospace", letterSpacing: 1 }}>{s}</div>
         ))}
       </div>
       <SectionHeader>Enneagram Wheel System</SectionHeader>
-      <div style={{ border: "1px dashed rgba(255,255,255,0.08)", padding: 20, textAlign: "center" }}>
+      <div style={{ border: `1px dashed ${t.border}`, padding: 20, textAlign: "center" }}>
         <div style={{ fontSize: 24 }}>☸</div>
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 8, fontFamily: "'Courier New', monospace", letterSpacing: 2 }}>SEE CODEX TAB FOR FULL ENNEAGRAM SYSTEM</div>
+        <div style={{ fontSize: 10, color: t.textLabel, marginTop: 8, fontFamily: "'Courier New', monospace", letterSpacing: 2 }}>SEE CODEX TAB FOR FULL ENNEAGRAM SYSTEM</div>
       </div>
     </div>
   );
@@ -664,17 +727,17 @@ function GameBlocksView() {
 
 // ─── AGENTS VIEW ─────────────────────────────────────────────────────
 function AgentCard({ agent }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
-  const sc = statusColor(agent.status);
+  const sc = statusColor(agent.status, t);
   const isDeployed = agent.status === "deployed";
-  const isBuilding = agent.status === "in progress";
 
   return (
     <div
       onClick={() => setExpanded(!expanded)}
       style={{
         border: `1px solid ${expanded ? agent.color + "50" : agent.color + "20"}`,
-        background: expanded ? `${agent.color}08` : `${agent.color}03`,
+        background: expanded ? `${agent.color}08` : t.surface,
         cursor: "pointer",
         transition: "all 0.3s",
         position: "relative",
@@ -698,9 +761,9 @@ function AgentCard({ agent }) {
               {agent.icon}
             </div>
             <div>
-              <div style={{ fontFamily: "system-ui", fontWeight: 900, fontSize: 18, color: "#fff", letterSpacing: 1 }}>{agent.name}</div>
+              <div style={{ fontFamily: t.fontBody, fontWeight: 900, fontSize: 18, color: t.text, letterSpacing: 1 }}>{agent.name}</div>
               <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: agent.color, letterSpacing: 3, marginTop: 2 }}>{agent.subtitle}</div>
-              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", letterSpacing: 2, marginTop: 2 }}>{agent.role}</div>
+              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: t.textLabel, letterSpacing: 2, marginTop: 2 }}>{agent.role}</div>
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
@@ -708,14 +771,14 @@ function AgentCard({ agent }) {
               <PulsingDot color={sc} size={7} />
               <span style={{ ...tagStyle(agent.status) }}>{agent.status}</span>
             </div>
-            <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 11, transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>▶</span>
+            <span style={{ color: t.textLabel, fontSize: 11, transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>▶</span>
           </div>
         </div>
 
         {/* Sub-agents row */}
         {agent.sub_agents.length > 0 && (
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-            <span style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "rgba(255,255,255,0.2)", letterSpacing: 2, alignSelf: "center" }}>SUB-AGENTS:</span>
+            <span style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: t.textLabel, letterSpacing: 2, alignSelf: "center" }}>SUB-AGENTS:</span>
             {agent.sub_agents.map((sa, i) => (
               <span key={i} style={{ fontSize: 9, color: agent.color, border: `1px solid ${agent.color}30`, padding: "2px 8px", fontFamily: "'Courier New', monospace", letterSpacing: 1 }}>{sa}</span>
             ))}
@@ -724,29 +787,29 @@ function AgentCard({ agent }) {
 
         {/* Stats row */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <div style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "8px 10px", background: "rgba(255,255,255,0.02)" }}>
+          <div style={{ border: `1px solid ${t.border}`, padding: "8px 10px", background: t.surfaceAlt }}>
             <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: RED, letterSpacing: 2, marginBottom: 4 }}>⚡ COST / UPKEEP</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>{agent.cost}</div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{agent.upkeep}</div>
+            <div style={{ fontSize: 10, color: t.textSub, lineHeight: 1.5 }}>{agent.cost}</div>
+            <div style={{ fontSize: 9, color: t.textMuted, marginTop: 2 }}>{agent.upkeep}</div>
           </div>
-          <div style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "8px 10px", background: "rgba(255,255,255,0.02)" }}>
+          <div style={{ border: `1px solid ${t.border}`, padding: "8px 10px", background: t.surfaceAlt }}>
             <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: GOLD, letterSpacing: 2, marginBottom: 4 }}>💰 REVENUE</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>{agent.revenue}</div>
+            <div style={{ fontSize: 10, color: t.textSub, lineHeight: 1.5 }}>{agent.revenue}</div>
           </div>
         </div>
 
         {/* Resources */}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
-          <span style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "rgba(255,255,255,0.2)", letterSpacing: 2, alignSelf: "center" }}>REQUIRES:</span>
+          <span style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: t.textLabel, letterSpacing: 2, alignSelf: "center" }}>REQUIRES:</span>
           {agent.resources.map((r, i) => (
-            <span key={i} style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.08)", padding: "2px 8px", fontFamily: "'Courier New', monospace" }}>{r}</span>
+            <span key={i} style={{ fontSize: 9, color: t.textMuted, border: `1px solid ${t.border}`, padding: "2px 8px", fontFamily: "'Courier New', monospace" }}>{r}</span>
           ))}
         </div>
 
         {/* Expanded description */}
         {expanded && (
           <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${agent.color}20` }}>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.8 }}>{agent.desc}</div>
+            <div style={{ fontSize: 12, color: t.textSub, lineHeight: 1.8 }}>{agent.desc}</div>
           </div>
         )}
       </div>
@@ -755,6 +818,7 @@ function AgentCard({ agent }) {
 }
 
 function AgentsView() {
+  const t = useT();
   const deployed = AGENTS.filter(a => a.status === "deployed").length;
   const building = AGENTS.filter(a => a.status === "in progress").length;
   const standby = AGENTS.filter(a => a.status === "not deployed").length;
@@ -767,18 +831,18 @@ function AgentsView() {
           <span style={{ fontSize: 20 }}>⚔</span>
           <div>
             <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: VIOLET, letterSpacing: 3 }}>AGENT COMMAND CENTER</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>AI units deployed across the map. Click any agent to inspect.</div>
+            <div style={{ fontSize: 11, color: t.textMuted, marginTop: 2 }}>AI units deployed across the map. Click any agent to inspect.</div>
           </div>
         </div>
         <div style={{ display: "flex", gap: 18 }}>
           {[
             { label: "DEPLOYED", val: deployed, color: GREEN },
             { label: "BUILDING", val: building, color: CYAN },
-            { label: "STANDBY", val: standby, color: "rgba(255,255,255,0.25)" },
+            { label: "STANDBY", val: standby, color: t.textLabel },
           ].map(({ label, val, color }) => (
             <div key={label} style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 22, fontWeight: 900, color, textShadow: color !== "rgba(255,255,255,0.25)" ? `0 0 10px ${color}40` : "none" }}>{val}</div>
-              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: "rgba(255,255,255,0.25)", letterSpacing: 2 }}>{label}</div>
+              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 22, fontWeight: 900, color, textShadow: (color !== t.textLabel && t.name === "hud") ? `0 0 10px ${color}40` : "none" }}>{val}</div>
+              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: t.textLabel, letterSpacing: 2 }}>{label}</div>
             </div>
           ))}
         </div>
@@ -807,7 +871,7 @@ function AgentsView() {
       {/* Standby */}
       {standby > 0 && (
         <>
-          <SectionHeader color="rgba(255,255,255,0.2)">Not Deployed — Awaiting Resources</SectionHeader>
+          <SectionHeader color={t.textLabel}>Not Deployed — Awaiting Resources</SectionHeader>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: 12, marginBottom: 8 }}>
             {AGENTS.filter(a => a.status === "not deployed").map((a, i) => <AgentCard key={i} agent={a} />)}
           </div>
@@ -816,7 +880,7 @@ function AgentsView() {
 
       {/* Resource unlock chain */}
       <SectionHeader color={GOLD}>Unlock Chain — Deploy Order</SectionHeader>
-      <div style={{ border: "1px solid rgba(255,215,0,0.12)", padding: 16, background: "rgba(255,215,0,0.02)" }}>
+      <div style={{ border: `1px solid ${t.name === "clean" ? t.border : "rgba(255,215,0,0.12)"}`, padding: 16, background: t.name === "clean" ? t.surfaceAlt : "rgba(255,215,0,0.02)" }}>
         {[
           { step: "01", label: "Consulting $ IN", detail: "Work DMs → book calls → first payment lands", color: GREEN, unlocks: "Clark API keys + Nami capital + Zoro OpenClaw" },
           { step: "02", label: "Clark FULLY LIVE", detail: "API keys paid → pipeline runs → drop sales start", color: CYAN, unlocks: "Passive income stream begins" },
@@ -825,11 +889,11 @@ function AgentsView() {
           { step: "05", label: "Zoro ACTIVATED", detail: "OpenClaw funded → competitor intel flowing", color: MAGENTA, unlocks: "Content strategy optimized by data" },
           { step: "06", label: "Nami LIVE", detail: "Capital ready → strategy PDF loaded → trades begin", color: GOLD, unlocks: "Crypto returns compound" },
         ].map((item, i) => (
-          <div key={i} style={{ display: "flex", gap: 16, padding: "10px 0", borderBottom: i < 5 ? "1px solid rgba(255,255,255,0.04)" : "none", alignItems: "flex-start" }}>
+          <div key={i} style={{ display: "flex", gap: 16, padding: "10px 0", borderBottom: i < 5 ? `1px solid ${t.border}` : "none", alignItems: "flex-start" }}>
             <div style={{ fontFamily: "'Courier New', monospace", fontSize: 20, fontWeight: 900, color: `${item.color}50`, flexShrink: 0, minWidth: 36 }}>{item.step}</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "system-ui", fontWeight: 700, fontSize: 13, color: "#fff" }}>{item.label}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{item.detail}</div>
+              <div style={{ fontFamily: t.fontBody, fontWeight: 700, fontSize: 13, color: t.text }}>{item.label}</div>
+              <div style={{ fontSize: 11, color: t.textMuted, marginTop: 2 }}>{item.detail}</div>
               <div style={{ fontSize: 10, color: item.color, fontFamily: "'Courier New', monospace", letterSpacing: 1, marginTop: 4 }}>→ UNLOCKS: {item.unlocks}</div>
             </div>
           </div>
@@ -840,30 +904,31 @@ function AgentsView() {
 }
 
 function CodexView() {
+  const t = useT();
   return (
     <div>
       <div style={{ border: `1px solid ${EMBER}25`, padding: 14, marginBottom: 20, background: `${EMBER}06`, display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ fontSize: 20 }}>📜</span>
         <div>
           <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 3, color: EMBER }}>CODEX — FULL OPERATING REFERENCE</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>Claude's backend context + Tyler's operating manual. Last updated: March 2026 (Day 29)</div>
+          <div style={{ fontSize: 11, color: t.textMuted, marginTop: 2 }}>Claude's backend context + Tyler's operating manual. Last updated: March 2026 (Day 29)</div>
         </div>
       </div>
 
       <CodexSection title="Current Position — Point 8 Retention/Surrender" accent={EMBER} defaultOpen={true}>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.8 }}>The viral video (Day 20, 15.8K+ views) was Point 7 — Presentation. Now in Point 8: collecting data, processing DMs, learning from feedback, surrendering outcomes. The danger is letting the wheel die at Point 8 from overwhelm, fear of disappointing people, or the emotional cost of holding space for 20+ strangers.</div>
+        <div style={{ fontSize: 12, color: t.textSub, lineHeight: 1.8 }}>The viral video (Day 20, 15.8K+ views) was Point 7 — Presentation. Now in Point 8: collecting data, processing DMs, learning from feedback, surrendering outcomes. The danger is letting the wheel die at Point 8 from overwhelm, fear of disappointing people, or the emotional cost of holding space for 20+ strangers.</div>
       </CodexSection>
 
       <CodexSection title="Active Wheels & Stages" accent={CYAN}>
         {ACTIVE_WHEELS.map((w, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "8px 0", borderBottom: i < ACTIVE_WHEELS.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-            <PulsingDot color={statusColor(w.status)} size={6} />
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "8px 0", borderBottom: i < ACTIVE_WHEELS.length - 1 ? `1px solid ${t.border}` : "none" }}>
+            <PulsingDot color={statusColor(w.status, t)} size={6} />
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
-                <span style={{ fontFamily: "system-ui", fontWeight: 700, fontSize: 13, color: "#fff" }}>{w.name}</span>
+                <span style={{ fontFamily: t.fontBody, fontWeight: 700, fontSize: 13, color: t.text }}>{w.name}</span>
                 <span style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: CYAN, border: `1px solid ${CYAN}30`, padding: "1px 6px", letterSpacing: 1 }}>{w.stage}</span>
               </div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{w.platform} — {w.notes}</div>
+              <div style={{ fontSize: 10, color: t.textMuted, marginTop: 2 }}>{w.platform} — {w.notes}</div>
             </div>
           </div>
         ))}
@@ -871,47 +936,47 @@ function CodexView() {
 
       <CodexSection title="Large Wheels Visible — Full Cycle Map" accent={MAGENTA}>
         {LARGE_WHEELS.map((w, i) => (
-          <div key={i} style={{ border: "1px solid rgba(255,255,255,0.06)", padding: 14, marginBottom: 8, background: "rgba(255,255,255,0.01)" }}>
+          <div key={i} style={{ border: `1px solid ${t.border}`, padding: 14, marginBottom: 8, background: t.surface }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 6 }}>
-              <div><span style={{ fontFamily: "system-ui", fontWeight: 700, fontSize: 14, color: "#fff" }}>{w.name}</span><span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginLeft: 8 }}>{w.period}</span></div>
+              <div><span style={{ fontFamily: t.fontBody, fontWeight: 700, fontSize: 14, color: t.text }}>{w.name}</span><span style={{ fontSize: 10, color: t.textLabel, marginLeft: 8 }}>{w.period}</span></div>
               <span style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: MAGENTA, border: `1px solid ${MAGENTA}30`, padding: "2px 6px", letterSpacing: 1 }}>{w.type}</span>
             </div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 6, lineHeight: 1.6 }}>{w.desc}</div>
+            <div style={{ fontSize: 11, color: t.textMuted, marginTop: 6, lineHeight: 1.6 }}>{w.desc}</div>
           </div>
         ))}
       </CodexSection>
 
       <CodexSection title="The Game 2025 — Master Wheel Levels" accent={GOLD}>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>Gamified Notion system tracking the entire year's progression.</div>
+        <div style={{ fontSize: 11, color: t.textMuted, marginBottom: 12 }}>Gamified Notion system tracking the entire year's progression.</div>
         {GAME_2025_LEVELS.map((lv, i) => (
-          <div key={i} style={{ marginBottom: 10, padding: "10px 14px", border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.01)" }}>
+          <div key={i} style={{ marginBottom: 10, padding: "10px 14px", border: `1px solid ${t.border}`, background: t.surface }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontFamily: "'Courier New', monospace", fontSize: 16, fontWeight: 900, color: lv.color }}>{lv.level}</span>
-                <span style={{ fontFamily: "system-ui", fontWeight: 700, fontSize: 13, color: "#fff" }}>{lv.name}</span>
-                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{lv.period}</span>
+                <span style={{ fontFamily: t.fontBody, fontWeight: 700, fontSize: 13, color: t.text }}>{lv.name}</span>
+                <span style={{ fontSize: 10, color: t.textLabel }}>{lv.period}</span>
               </div>
               <span style={{ ...tagStyle(lv.pct === 100 ? "active" : lv.pct > 50 ? "planning" : "not started") }}>{lv.status}</span>
             </div>
-            <div style={{ height: 3, background: "rgba(255,255,255,0.06)", marginBottom: 6 }}><div style={{ height: "100%", width: `${lv.pct}%`, background: lv.color, transition: "width 0.5s" }} /></div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>{lv.notes}</div>
+            <div style={{ height: 3, background: t.border, marginBottom: 6 }}><div style={{ height: "100%", width: `${lv.pct}%`, background: lv.color, transition: "width 0.5s" }} /></div>
+            <div style={{ fontSize: 10, color: t.textMuted, lineHeight: 1.5 }}>{lv.notes}</div>
           </div>
         ))}
         <div style={{ marginTop: 12, padding: 12, border: `1px solid ${GOLD}15`, background: `${GOLD}04` }}>
           <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: GOLD, marginBottom: 8 }}>PRODUCTS & DELIVERABLES CREATED</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-            {PRODUCTS_CREATED.map((p, i) => <span key={i} style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.06)", padding: "2px 8px", background: "rgba(255,255,255,0.02)" }}>{p}</span>)}
+            {PRODUCTS_CREATED.map((p, i) => <span key={i} style={{ fontSize: 10, color: t.textMuted, border: `1px solid ${t.border}`, padding: "2px 8px", background: t.surface }}>{p}</span>)}
           </div>
         </div>
       </CodexSection>
 
-      <CodexSection title="Past Wheels — Fed Forward" accent="rgba(255,255,255,0.3)">
+      <CodexSection title="Past Wheels — Fed Forward" accent={t.borderMed}>
         {PAST_WHEELS.map((w, i) => (
-          <div key={i} style={{ display: "flex", gap: 12, padding: "8px 0", borderBottom: i < PAST_WHEELS.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.15)", fontFamily: "'Courier New', monospace", flexShrink: 0 }}>→</span>
+          <div key={i} style={{ display: "flex", gap: 12, padding: "8px 0", borderBottom: i < PAST_WHEELS.length - 1 ? `1px solid ${t.border}` : "none" }}>
+            <span style={{ fontSize: 11, color: t.textFaint, fontFamily: "'Courier New', monospace", flexShrink: 0 }}>→</span>
             <div style={{ flex: 1 }}>
-              <span style={{ fontFamily: "system-ui", fontWeight: 700, fontSize: 12, color: "rgba(255,255,255,0.6)" }}>{w.name}</span>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{w.happened}</div>
+              <span style={{ fontFamily: t.fontBody, fontWeight: 700, fontSize: 12, color: t.textSub }}>{w.name}</span>
+              <div style={{ fontSize: 10, color: t.textMuted, marginTop: 2 }}>{w.happened}</div>
               <div style={{ fontSize: 10, color: GREEN, marginTop: 2 }}>Fed → {w.fed}</div>
             </div>
           </div>
@@ -923,13 +988,13 @@ function CodexView() {
           <div style={{ position: "absolute", left: 6, top: 0, bottom: 0, width: 1, background: `${MAGENTA}20` }} />
           {VIRAL_TIMELINE.map((e, i) => (
             <div key={i} style={{ position: "relative", paddingBottom: 12, paddingLeft: 16 }}>
-              <div style={{ position: "absolute", left: -17, top: 4, width: 8, height: 8, borderRadius: "50%", background: e.highlight ? MAGENTA : "rgba(255,255,255,0.15)", boxShadow: e.highlight ? `0 0 6px ${MAGENTA}` : "none" }} />
-              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: e.highlight ? MAGENTA : "rgba(255,255,255,0.3)", letterSpacing: 1 }}>{e.date}</div>
-              <div style={{ fontSize: 12, color: e.highlight ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.4)", marginTop: 2 }}>{e.event}</div>
+              <div style={{ position: "absolute", left: -17, top: 4, width: 8, height: 8, borderRadius: "50%", background: e.highlight ? MAGENTA : t.border, boxShadow: e.highlight ? `0 0 6px ${MAGENTA}` : "none" }} />
+              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: e.highlight ? MAGENTA : t.textMuted, letterSpacing: 1 }}>{e.date}</div>
+              <div style={{ fontSize: 12, color: e.highlight ? t.textSub : t.textMuted, marginTop: 2 }}>{e.event}</div>
             </div>
           ))}
         </div>
-        <div style={{ marginTop: 10, padding: 12, border: `1px solid ${MAGENTA}15`, background: `${MAGENTA}04`, fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, fontStyle: "italic" }}>
+        <div style={{ marginTop: 10, padding: 12, border: `1px solid ${MAGENTA}15`, background: `${MAGENTA}04`, fontSize: 11, color: t.textMuted, lineHeight: 1.6, fontStyle: "italic" }}>
           <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: MAGENTA, marginBottom: 6, fontStyle: "normal" }}>HERO'S JOURNEY CYCLE</div>
           {HERO_JOURNEY}
         </div>
@@ -938,18 +1003,18 @@ function CodexView() {
       <CodexSection title="Goals — Active & Historical" accent={GOLD}>
         <div style={{ border: `1px solid ${GOLD}20`, padding: 14, marginBottom: 12, background: `${GOLD}06` }}>
           <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: GOLD, marginBottom: 6 }}>ACTIVE GOAL — MARCH 2026</div>
-          <div style={{ fontFamily: "system-ui", fontWeight: 700, fontSize: 15, color: "#fff" }}>Solving the Infinite Money Glitch</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>AI automation + online revenue infrastructure → scalable income. $100K in 2026 target.</div>
+          <div style={{ fontFamily: t.fontBody, fontWeight: 700, fontSize: 15, color: t.text }}>Solving the Infinite Money Glitch</div>
+          <div style={{ fontSize: 11, color: t.textMuted, marginTop: 4 }}>AI automation + online revenue infrastructure → scalable income. $100K in 2026 target.</div>
         </div>
         {GOALS_HISTORICAL.map((g, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: `1px solid ${t.border}` }}>
             <span style={{ fontSize: 12, color: g.status === "done" ? GREEN : EMBER }}>{g.status === "done" ? "✓" : "◦"}</span>
-            <span style={{ fontSize: 12, color: g.status === "done" ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.4)" }}>{g.goal}</span>
+            <span style={{ fontSize: 12, color: g.status === "done" ? t.textSub : t.textMuted }}>{g.goal}</span>
             {g.note && <span style={{ fontSize: 9, color: MAGENTA, fontFamily: "'Courier New', monospace" }}>← {g.note}</span>}
           </div>
         ))}
-        <div style={{ marginTop: 10, padding: 10, border: "1px solid rgba(255,255,255,0.06)", fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.6 }}>
-          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: "rgba(255,255,255,0.25)", marginBottom: 4 }}>PRE-VIRAL INTENTION CHAIN</div>
+        <div style={{ marginTop: 10, padding: 10, border: `1px solid ${t.border}`, fontSize: 11, color: t.textMuted, lineHeight: 1.6 }}>
+          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: t.textLabel, marginBottom: 4 }}>PRE-VIRAL INTENTION CHAIN</div>
           July 30, 2025: "Go viral on YouTube" → Aug 2025 Level 6: "GO VIRAL ON TIKTOK" → Feb 25, 2026: Viral video lands (7 months later, different wheel)
         </div>
       </CodexSection>
@@ -958,42 +1023,42 @@ function CodexView() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div style={{ border: `1px solid ${GREEN}15`, padding: 14, background: `${GREEN}04` }}>
             <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: GREEN, marginBottom: 8 }}>WHAT TYLER IS</div>
-            {TYLER_IS.map((t, i) => <div key={i} style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, padding: "3px 0" }}>▸ {t}</div>)}
+            {TYLER_IS.map((item, i) => <div key={i} style={{ fontSize: 11, color: t.textSub, lineHeight: 1.6, padding: "3px 0" }}>▸ {item}</div>)}
           </div>
           <div style={{ border: `1px solid ${RED}15`, padding: 14, background: `${RED}04` }}>
             <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: RED, marginBottom: 8 }}>WHAT TYLER IS NOT</div>
-            {TYLER_IS_NOT.map((t, i) => <div key={i} style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, padding: "3px 0" }}>✕ {t}</div>)}
+            {TYLER_IS_NOT.map((item, i) => <div key={i} style={{ fontSize: 11, color: t.textSub, lineHeight: 1.6, padding: "3px 0" }}>✕ {item}</div>)}
           </div>
         </div>
-        <div style={{ border: "1px solid rgba(255,255,255,0.06)", padding: 14, background: "rgba(255,255,255,0.01)" }}>
+        <div style={{ border: `1px solid ${t.border}`, padding: 14, background: t.surface }}>
           <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: CYAN, marginBottom: 8 }}>WHAT TYLER DOES IN 1-ON-1S</div>
-          {WHAT_TYLER_DOES_1ON1.map((t, i) => <div key={i} style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, padding: "3px 0" }}>▸ {t}</div>)}
+          {WHAT_TYLER_DOES_1ON1.map((item, i) => <div key={i} style={{ fontSize: 11, color: t.textSub, lineHeight: 1.6, padding: "3px 0" }}>▸ {item}</div>)}
         </div>
       </CodexSection>
 
       <CodexSection title="Creator Inspirations" accent={MAGENTA}>
         {CREATOR_INSPIRATIONS.map((c, i) => (
-          <div key={i} style={{ padding: "8px 0", borderBottom: i < CREATOR_INSPIRATIONS.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-            <span style={{ fontFamily: "system-ui", fontWeight: 700, fontSize: 13, color: "#fff" }}>{c.name}</span>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{c.note}</div>
+          <div key={i} style={{ padding: "8px 0", borderBottom: i < CREATOR_INSPIRATIONS.length - 1 ? `1px solid ${t.border}` : "none" }}>
+            <span style={{ fontFamily: t.fontBody, fontWeight: 700, fontSize: 13, color: t.text }}>{c.name}</span>
+            <div style={{ fontSize: 11, color: t.textMuted, marginTop: 2 }}>{c.note}</div>
           </div>
         ))}
       </CodexSection>
 
       <CodexSection title="Spiritual Framework — Fourth Way" accent={GOLD}>
-        {SPIRITUAL_FRAMEWORK.map((s, i) => <div key={i} style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, padding: "4px 0" }}>◆ {s}</div>)}
+        {SPIRITUAL_FRAMEWORK.map((s, i) => <div key={i} style={{ fontSize: 11, color: t.textSub, lineHeight: 1.6, padding: "4px 0" }}>◆ {s}</div>)}
         <div style={{ marginTop: 12, padding: 12, border: `1px dashed ${GOLD}15`, background: `${GOLD}02` }}>
           <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: GOLD, marginBottom: 8 }}>GUIDING QUOTES</div>
-          {SPIRITUAL_QUOTES.map((q, i) => <div key={i} style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, padding: "4px 0", fontStyle: "italic" }}>"{q}"</div>)}
+          {SPIRITUAL_QUOTES.map((q, i) => <div key={i} style={{ fontSize: 11, color: t.textMuted, lineHeight: 1.6, padding: "4px 0", fontStyle: "italic" }}>"{q}"</div>)}
         </div>
-        <div style={{ marginTop: 10, fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, padding: 10, border: "1px solid rgba(255,255,255,0.05)" }}>
-          <strong style={{ color: "rgba(255,255,255,0.5)" }}>The enlightened person Tyler spoke with told him:</strong> He still hasn't accepted the machine-like part of himself — the robot, the instinctual one.
+        <div style={{ marginTop: 10, fontSize: 11, color: t.textMuted, lineHeight: 1.6, padding: 10, border: `1px solid ${t.border}` }}>
+          <strong style={{ color: t.textSub }}>The enlightened person Tyler spoke with told him:</strong> He still hasn't accepted the machine-like part of himself — the robot, the instinctual one.
         </div>
       </CodexSection>
 
-      <CodexSection title="Journal Entries — Feb 28, 2026" accent="rgba(255,255,255,0.3)">
+      <CodexSection title="Journal Entries — Feb 28, 2026" accent={t.borderMed}>
         {JOURNAL_ENTRIES.map((j, i) => (
-          <div key={i} style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.7, padding: "6px 0", borderBottom: i < JOURNAL_ENTRIES.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none", fontStyle: "italic" }}>"{j}"</div>
+          <div key={i} style={{ fontSize: 11, color: t.textMuted, lineHeight: 1.7, padding: "6px 0", borderBottom: i < JOURNAL_ENTRIES.length - 1 ? `1px solid ${t.border}` : "none", fontStyle: "italic" }}>"{j}"</div>
         ))}
       </CodexSection>
 
@@ -1001,7 +1066,7 @@ function CodexView() {
         {CODEX_PROMPTS.map((p, i) => (
           <div key={i} style={{ border: "1px solid rgba(255,34,68,0.1)", padding: "10px 14px", marginBottom: 6, background: "rgba(255,34,68,0.02)" }}>
             <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, letterSpacing: 2, color: RED, marginBottom: 4 }}>{p.name.toUpperCase()}</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "'Courier New', monospace", lineHeight: 1.6 }}><span style={{ color: CYAN, marginRight: 8 }}>›</span>{p.prompt}</div>
+            <div style={{ fontSize: 12, color: t.textSub, fontFamily: "'Courier New', monospace", lineHeight: 1.6 }}><span style={{ color: CYAN, marginRight: 8 }}>›</span>{p.prompt}</div>
           </div>
         ))}
       </CodexSection>
@@ -1017,14 +1082,14 @@ function CodexView() {
           { date: "Feb 25, 2026 (Day ~18)", event: "Viral video — 15.8K+ views, 18.1K on second count. 1,040 followers (from 511)." },
           { date: "Feb 28, 2026 (Day 22)", event: "1,204 followers. 20+ DMs processed. Calendly set up. Point 8 retention work." },
         ].map((e, i) => (
-          <div key={i} style={{ display: "flex", gap: 12, padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
+          <div key={i} style={{ display: "flex", gap: 12, padding: "6px 0", borderBottom: `1px solid ${t.border}` }}>
             <span style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: CYAN, minWidth: 160, flexShrink: 0 }}>{e.date}</span>
-            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{e.event}</span>
+            <span style={{ fontSize: 11, color: t.textSub }}>{e.event}</span>
           </div>
         ))}
       </CodexSection>
 
-      <CodexSection title="Accounts & Links" accent="rgba(255,255,255,0.3)">
+      <CodexSection title="Accounts & Links" accent={t.borderMed}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 6 }}>
           {[
             { label: "TikTok main", value: "@tylerchoice" }, { label: "TikTok Nie", value: "@nie.aura" },
@@ -1033,9 +1098,9 @@ function CodexView() {
             { label: "Substack", value: "substack.com/@niearchive" }, { label: "Calendly", value: "calendly.com/tylerchoice/" },
             { label: "Linktree", value: "linktr.ee/tylerchoice" }, { label: "Shopify", value: "choiceaurastore.myshopify.com" },
           ].map((a, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", border: "1px solid rgba(255,255,255,0.04)", background: "rgba(255,255,255,0.01)" }}>
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontFamily: "'Courier New', monospace" }}>{a.label}</span>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{a.value}</span>
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 10px", border: `1px solid ${t.border}`, background: t.surface }}>
+              <span style={{ fontSize: 10, color: t.textMuted, fontFamily: "'Courier New', monospace" }}>{a.label}</span>
+              <span style={{ fontSize: 11, color: t.textSub }}>{a.value}</span>
             </div>
           ))}
         </div>
@@ -1046,13 +1111,14 @@ function CodexView() {
 
 // ─── FIELD RESEARCH VIEW ─────────────────────────────────────────────
 function FieldResearchView() {
+  const t = useT();
   return (
     <div>
-      <SectionHeader label="Field Research" accent={TEAL} />
+      <SectionHeader color={TEAL}>Field Research</SectionHeader>
       <div style={{ border: `1px solid ${TEAL}20`, padding: 40, textAlign: "center", background: `${TEAL}04` }}>
         <div style={{ fontSize: 28, marginBottom: 12 }}>🔭</div>
         <div style={{ fontSize: 11, color: TEAL, letterSpacing: 3, marginBottom: 8 }}>FIELD RESEARCH</div>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", letterSpacing: 1 }}>— COMING SOON —</div>
+        <div style={{ fontSize: 12, color: t.textLabel, letterSpacing: 1 }}>— COMING SOON —</div>
       </div>
     </div>
   );
@@ -1060,13 +1126,14 @@ function FieldResearchView() {
 
 // ─── STRATEGIES VIEW ─────────────────────────────────────────────────
 function StrategiesView() {
+  const t = useT();
   return (
     <div>
-      <SectionHeader label="Strategies" accent={LIME} />
+      <SectionHeader color={LIME}>Strategies</SectionHeader>
       <div style={{ border: `1px solid ${LIME}20`, padding: 40, textAlign: "center", background: `${LIME}04` }}>
         <div style={{ fontSize: 28, marginBottom: 12 }}>♟️</div>
         <div style={{ fontSize: 11, color: LIME, letterSpacing: 3, marginBottom: 8 }}>STRATEGIES</div>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", letterSpacing: 1 }}>— COMING SOON —</div>
+        <div style={{ fontSize: 12, color: t.textLabel, letterSpacing: 1 }}>— COMING SOON —</div>
       </div>
     </div>
   );
@@ -1084,9 +1151,10 @@ const TABS = [
   { id: "strategies", label: "Strategies", accent: LIME },
 ];
 
-export default function App() {
+export default function App({ themeName = "hud", setThemeName = null }) {
   const [activeTab, setActiveTab] = useState("infra");
   const [time, setTime] = useState(new Date());
+  const t = themeName === "clean" ? CLEAN : HUD;
 
   useEffect(() => {
     const iv = setInterval(() => setTime(new Date()), 1000);
@@ -1108,53 +1176,58 @@ export default function App() {
   };
 
   return (
-    <div style={{ background: BG, color: "#e0e0e0", fontFamily: "'Courier New', monospace", minHeight: "100vh", overflow: "hidden" }}>
-      <Scanlines />
-      <GridBG />
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 1100, margin: "0 auto", padding: "20px 16px" }}>
-        {/* HUD TOP */}
-        <div style={{ border: "1px solid rgba(0,240,255,0.2)", padding: "12px 20px", marginBottom: 6, background: "rgba(0,240,255,0.03)", position: "relative", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-          <div style={{ position: "absolute", top: -1, left: 20, width: 200, height: 2, background: CYAN, boxShadow: `0 0 10px ${CYAN}` }} />
-          <div>
-            <GlitchText text="CHOICE AURA" fontSize={20} />
-            <div style={{ fontSize: 10, letterSpacing: 3, color: "rgba(255,255,255,0.25)", marginTop: 2 }}>COMMAND CENTER — OPERATOR HUD + CLAUDE BACKEND CONTEXT</div>
-          </div>
-          <div style={{ display: "flex", gap: 18, fontSize: 10, letterSpacing: 2, color: "rgba(255,255,255,0.35)", flexWrap: "wrap" }}>
-            <span>DAY <span style={{ color: GOLD }}>29</span></span>
-            <span>FOLLOWERS <span style={{ color: GOLD }}>1,510</span></span>
-            <span>LIKES <span style={{ color: GOLD }}>22.8K</span></span>
-            <span>{time.toLocaleTimeString("en-US", { hour12: false })}</span>
-          </div>
-        </div>
-        {/* QUEST BAR */}
-        <div style={{ border: `1px solid ${MAGENTA}30`, padding: "8px 16px", marginBottom: 6, background: `${MAGENTA}05`, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <span style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: MAGENTA, border: `1px solid ${MAGENTA}`, padding: "2px 8px", letterSpacing: 2, textShadow: `0 0 8px ${MAGENTA}`, whiteSpace: "nowrap" }}>QUEST</span>
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>SOLVING THE <strong style={{ color: GOLD, textShadow: `0 0 12px ${GOLD}30` }}>INFINITE MONEY GLITCH</strong> — <strong style={{ color: GOLD }}>$100K / 2026</strong></span>
-        </div>
-        {/* SUPPORT BAR */}
-        <div style={{ border: `1px solid ${GREEN}20`, padding: "8px 16px", marginBottom: 16, background: `${GREEN}04`, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <span style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: GREEN, border: `1px solid ${GREEN}`, padding: "2px 8px", letterSpacing: 2, whiteSpace: "nowrap" }}>SUPPORT</span>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>If this project has added value to your life, consider supporting it. Cash App: <strong style={{ color: GREEN }}>$HeavenIsGreen</strong></span>
-        </div>
-        {/* NAV TABS */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
-          {TABS.map(t => <NavTab key={t.id} label={t.label} active={activeTab === t.id} onClick={() => setActiveTab(t.id)} accent={t.accent} />)}
-        </div>
-        {/* CONTENT */}
-        <div style={{ minHeight: 400 }}>{renderView()}</div>
-        {/* BOTTOM HUD */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 30, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.04)", flexWrap: "wrap", gap: 10 }}>
-          <div style={{ display: "flex", gap: 14 }}>
-            {[{ c: GREEN, l: "ACTIVE" }, { c: VIOLET, l: "AGENTS" }, { c: MAGENTA, l: "NEW" }, { c: EMBER, l: "PENDING" }, { c: "rgba(255,255,255,0.15)", l: "DORMANT" }].map((item, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: item.c, boxShadow: item.c !== "rgba(255,255,255,0.15)" ? `0 0 6px ${item.c}` : "none" }} />
-                <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", letterSpacing: 2 }}>{item.l}</span>
+    <ThemeCtx.Provider value={t}>
+      <div style={{ background: t.bg, color: t.text, fontFamily: t.fontBody, minHeight: "100vh", overflow: "hidden" }}>
+        {t.name === "hud" && <Scanlines />}
+        {t.name === "hud" && <GridBG />}
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 1100, margin: "0 auto", padding: "20px 16px" }}>
+          {/* HUD TOP */}
+          <div style={{ border: `1px solid ${t.c}${t.name === "clean" ? "40" : "20"}`, padding: "12px 20px", marginBottom: 6, background: t.name === "clean" ? t.surface : "rgba(0,240,255,0.03)", position: "relative", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+            {t.name === "hud" && <div style={{ position: "absolute", top: -1, left: 20, width: 200, height: 2, background: CYAN, boxShadow: `0 0 10px ${CYAN}` }} />}
+            <div>
+              {t.name === "hud" ? <GlitchText text="CHOICE AURA" fontSize={20} /> : <span style={{ fontFamily: t.fontMono, fontWeight: 900, fontSize: 20, letterSpacing: 4, color: t.c }}>CHOICE AURA</span>}
+              <div style={{ fontSize: 10, letterSpacing: 3, color: t.textLabel, marginTop: 2 }}>COMMAND CENTER — OPERATOR HUD + CLAUDE BACKEND CONTEXT</div>
+            </div>
+            <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 18, fontSize: 10, letterSpacing: 2, color: t.textMuted, flexWrap: "wrap" }}>
+                <span>DAY <span style={{ color: t.g }}>29</span></span>
+                <span>FOLLOWERS <span style={{ color: t.g }}>1,510</span></span>
+                <span>LIKES <span style={{ color: t.g }}>22.8K</span></span>
+                <span>{time.toLocaleTimeString("en-US", { hour12: false })}</span>
               </div>
-            ))}
+              <ThemeToggle theme={themeName} onToggle={() => setThemeName && setThemeName(n => n === "clean" ? "hud" : "clean")} />
+            </div>
           </div>
-          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.15)", letterSpacing: 2 }}>MARCH 2026 — TYLER CHOICE — v4.1</div>
+          {/* QUEST BAR */}
+          <div style={{ border: `1px solid ${t.mg}30`, padding: "8px 16px", marginBottom: 6, background: `${t.mg}05`, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: t.fontMono, fontSize: 9, color: t.mg, border: `1px solid ${t.mg}`, padding: "2px 8px", letterSpacing: 2, textShadow: t.name === "hud" ? `0 0 8px ${t.mg}` : "none", whiteSpace: "nowrap" }}>QUEST</span>
+            <span style={{ fontSize: 13, color: t.textSub }}>SOLVING THE <strong style={{ color: t.g, textShadow: t.name === "hud" ? `0 0 12px ${t.g}30` : "none" }}>INFINITE MONEY GLITCH</strong> — <strong style={{ color: t.g }}>$100K / 2026</strong></span>
+          </div>
+          {/* SUPPORT BAR */}
+          <div style={{ border: `1px solid ${t.gr}20`, padding: "8px 16px", marginBottom: 16, background: `${t.gr}04`, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: t.fontMono, fontSize: 9, color: t.gr, border: `1px solid ${t.gr}`, padding: "2px 8px", letterSpacing: 2, whiteSpace: "nowrap" }}>SUPPORT</span>
+            <span style={{ fontSize: 12, color: t.textSub }}>If this project has added value to your life, consider supporting it. Cash App: <strong style={{ color: t.gr }}>$HeavenIsGreen</strong></span>
+          </div>
+          {/* NAV TABS */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
+            {TABS.map(tab => <NavTab key={tab.id} label={tab.label} active={activeTab === tab.id} onClick={() => setActiveTab(tab.id)} accent={tab.accent} />)}
+          </div>
+          {/* CONTENT */}
+          <div style={{ minHeight: 400 }}>{renderView()}</div>
+          {/* BOTTOM HUD */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 30, paddingTop: 12, borderTop: `1px solid ${t.border}`, flexWrap: "wrap", gap: 10 }}>
+            <div style={{ display: "flex", gap: 14 }}>
+              {[{ c: GREEN, l: "ACTIVE" }, { c: VIOLET, l: "AGENTS" }, { c: MAGENTA, l: "NEW" }, { c: EMBER, l: "PENDING" }, { c: t.textFaint, l: "DORMANT" }].map((item, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: item.c, boxShadow: (item.c !== t.textFaint && t.name === "hud") ? `0 0 6px ${item.c}` : "none" }} />
+                  <span style={{ fontSize: 9, color: t.textLabel, letterSpacing: 2 }}>{item.l}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 9, color: t.textFaint, letterSpacing: 2 }}>MARCH 2026 — TYLER CHOICE — v4.1</div>
+          </div>
         </div>
       </div>
-    </div>
+    </ThemeCtx.Provider>
   );
 }
