@@ -29,7 +29,8 @@ function useTikTokStats(handle = "tylerchoice") {
       if (m1) {
         try {
           const json = JSON.parse(m1[1]);
-          const s = json?.["webapp.user-detail"]?.userInfo?.stats;
+          const scope = json?.["__DEFAULT_SCOPE__"] ?? json;
+          const s = scope?.["webapp.user-detail"]?.userInfo?.stats;
           if (s?.followerCount != null) return { followers: s.followerCount, likes: s.heartCount };
         } catch { /* try next */ }
       }
