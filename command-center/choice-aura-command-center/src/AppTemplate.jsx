@@ -745,7 +745,7 @@ export default function AppTemplate({ themeName: themeNameProp = null, setThemeN
             {t.name === "hud" && <div style={{ position: "absolute", top: -1, left: 20, width: 200, height: 2, background: t.accent, boxShadow: `0 0 10px ${t.accent}` }} />}
             <div>
               <GlitchTitle text="OPERATOR DASHBOARD" />
-              <div style={{ fontSize: t.name === "clean" ? 11 : 10, letterSpacing: t.name === "clean" ? 1 : 3, color: t.textMuted, marginTop: 2, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, textTransform: "uppercase" }}>Your life & business HQ — all in one place</div>
+              <div style={{ fontSize: t.name === "clean" ? 11 : 10, letterSpacing: t.name === "clean" ? 1 : 3, color: t.textMuted, marginTop: 2, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, textTransform: "uppercase" }}>An interface between human and AI.</div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
               <div style={{ display: "flex", gap: 16, fontSize: 11, color: t.textMuted, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono }}>
@@ -767,7 +767,7 @@ export default function AppTemplate({ themeName: themeNameProp = null, setThemeN
             <div style={{ display: "flex", gap: t.name === "clean" ? 32 : 40, flexWrap: "wrap" }}>
               <div style={{ flex: 1, minWidth: 180 }}>
                 <div style={{ fontSize: 9, color: t.textLabel, letterSpacing: 2, textTransform: "uppercase", fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, marginBottom: 6, fontWeight: 700 }}>What it is</div>
-                <div style={{ fontSize: t.name === "clean" ? 13 : 11, color: t.textSub, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, lineHeight: 1.7 }}>A personal dashboard. A life/business HQ. An interface between human and AI.</div>
+                <div style={{ fontSize: t.name === "clean" ? 13 : 11, color: t.textSub, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, lineHeight: 1.7 }}>A personal dashboard.<br />A life/business HQ.</div>
               </div>
               <div style={{ flex: 1, minWidth: 180 }}>
                 <div style={{ fontSize: 9, color: t.textLabel, letterSpacing: 2, textTransform: "uppercase", fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, marginBottom: 6, fontWeight: 700 }}>What it does</div>
