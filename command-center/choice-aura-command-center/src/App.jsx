@@ -620,7 +620,7 @@ function InfrastructureView() {
   const t = useT();
   return (
     <div>
-      <SectionHeader>Three Jobs — Current Situation</SectionHeader>
+      <SectionHeader>Three Jobs — What You're Working On</SectionHeader>
       <ThreeJobsPanel />
       <SectionHeader>Revenue Paths</SectionHeader>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
@@ -1270,7 +1270,7 @@ export default function App({ themeName = "hud", setThemeName = null }) {
             {t.name === "hud" && <div style={{ position: "absolute", top: -1, left: 20, width: 200, height: 2, background: CYAN, boxShadow: `0 0 10px ${CYAN}` }} />}
             <div>
               {t.name === "hud" ? <GlitchText text="CHOICE AURA" fontSize={20} /> : <span style={{ fontFamily: t.fontMono, fontWeight: 900, fontSize: 20, letterSpacing: 4, color: t.c }}>CHOICE AURA</span>}
-              <div style={{ fontSize: 10, letterSpacing: 3, color: t.textLabel, marginTop: 2 }}>COMMAND CENTER — OPERATOR HUD + CLAUDE BACKEND CONTEXT</div>
+              <div style={{ fontSize: 10, letterSpacing: 3, color: t.textLabel, marginTop: 2 }}>An interface between human and AI.</div>
             </div>
             <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
               <div style={{ display: "flex", gap: 18, fontSize: 10, letterSpacing: 2, color: t.textMuted, flexWrap: "wrap", alignItems: "center" }}>
