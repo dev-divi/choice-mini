@@ -507,24 +507,25 @@ function CodexSection({ title, accent = EMBER, children, defaultOpen = false }) 
 
 // ─── TAB VIEWS ───────────────────────────────────────────────────────
 function ThreeJobsPanel() {
+  const t = useT();
   const [open, setOpen] = useState(null);
   return (
     <div style={{ marginBottom: 20 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 10 }}>
         {THREE_JOBS.map((job, i) => (
-          <div key={i} onClick={() => setOpen(open === i ? null : i)} style={{ border: `1px solid ${job.color}30`, padding: 16, background: `${job.color}05`, cursor: "pointer", transition: "all 0.3s", boxShadow: open === i ? `0 0 20px ${job.color}15` : "none" }}>
+          <div key={i} onClick={() => setOpen(open === i ? null : i)} style={{ border: `1px solid ${job.color}30`, padding: 16, background: t.name === "clean" ? t.surface : `${job.color}05`, cursor: "pointer", transition: "all 0.3s", boxShadow: open === i ? `0 0 20px ${job.color}15` : "none" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div style={{ fontFamily: "'Courier New', monospace", fontSize: 28, fontWeight: 900, color: `${job.color}40`, lineHeight: 1 }}>JOB {job.num}</div>
-                <div style={{ fontFamily: "system-ui", fontWeight: 800, fontSize: 16, color: "#fff", marginTop: 4 }}>{job.title}</div>
+                <div style={{ fontFamily: "'Courier New', monospace", fontSize: 28, fontWeight: 900, color: t.name === "clean" ? job.color + "90" : job.color + "40", lineHeight: 1 }}>JOB {job.num}</div>
+                <div style={{ fontFamily: "system-ui", fontWeight: 800, fontSize: 16, color: t.text, marginTop: 4 }}>{job.title}</div>
                 <div style={{ fontSize: 9, color: job.color, fontFamily: "'Courier New', monospace", letterSpacing: 2, marginTop: 4 }}>{job.status}</div>
               </div>
               <PulsingDot color={job.color} size={8} />
             </div>
             {open === i && (
               <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${job.color}20` }}>
-                {job.detail && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 8 }}>{job.detail}</div>}
-                {job.blocker && <div style={{ fontSize: 10, color: RED, fontFamily: "'Courier New', monospace", letterSpacing: 1 }}>⚠ {job.blocker}</div>}
+                {job.detail && <div style={{ fontSize: 12, color: t.textSub, lineHeight: 1.7, marginBottom: 8 }}>{job.detail}</div>}
+                {job.blocker && <div style={{ fontSize: 10, color: t.re, fontFamily: "'Courier New', monospace", letterSpacing: 1 }}>⚠ {job.blocker}</div>}
                 {job.unlock && <div style={{ fontSize: 10, color: job.color, fontFamily: "'Courier New', monospace", letterSpacing: 1, marginTop: 6 }}>→ {job.unlock}</div>}
               </div>
             )}
@@ -551,7 +552,7 @@ function InfrastructureView() {
       </div>
       <div style={{ textAlign: "center", margin: "30px 0 10px", padding: 20, border: `1px solid ${t.name === "clean" ? t.border : "rgba(255,215,0,0.1)"}`, background: t.name === "clean" ? t.surfaceAlt : "rgba(255,215,0,0.02)" }}>
         <div style={{ fontSize: 28 }}>🔥</div>
-        <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 3, color: `${GOLD}80`, marginTop: 6 }}>BONFIRE LIT — POINT 8 SURRENDER</div>
+        <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 3, color: t.g, marginTop: 6 }}>BONFIRE LIT — POINT 8 SURRENDER</div>
         <div style={{ fontSize: 11, color: t.textMuted, marginTop: 4, fontStyle: "italic" }}>"I let go, and it turns out this was already done for me."</div>
       </div>
     </div>
@@ -1110,13 +1111,14 @@ function CodexView() {
 
 // ─── FIELD RESEARCH VIEW ─────────────────────────────────────────────
 function FieldResearchView() {
+  const t = useT();
   return (
     <div>
       <SectionHeader color={TEAL}>Field Research</SectionHeader>
       <div style={{ border: `1px solid ${TEAL}20`, padding: 40, textAlign: "center", background: `${TEAL}04` }}>
         <div style={{ fontSize: 28, marginBottom: 12 }}>🔭</div>
         <div style={{ fontSize: 11, color: TEAL, letterSpacing: 3, marginBottom: 8 }}>FIELD RESEARCH</div>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", letterSpacing: 1 }}>— COMING SOON —</div>
+        <div style={{ fontSize: 12, color: t.textLabel, letterSpacing: 1 }}>— COMING SOON —</div>
       </div>
     </div>
   );
@@ -1124,13 +1126,14 @@ function FieldResearchView() {
 
 // ─── STRATEGIES VIEW ─────────────────────────────────────────────────
 function StrategiesView() {
+  const t = useT();
   return (
     <div>
       <SectionHeader color={LIME}>Strategies</SectionHeader>
       <div style={{ border: `1px solid ${LIME}20`, padding: 40, textAlign: "center", background: `${LIME}04` }}>
         <div style={{ fontSize: 28, marginBottom: 12 }}>♟️</div>
         <div style={{ fontSize: 11, color: LIME, letterSpacing: 3, marginBottom: 8 }}>STRATEGIES</div>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", letterSpacing: 1 }}>— COMING SOON —</div>
+        <div style={{ fontSize: 12, color: t.textLabel, letterSpacing: 1 }}>— COMING SOON —</div>
       </div>
     </div>
   );
@@ -1148,10 +1151,9 @@ const TABS = [
   { id: "strategies", label: "Strategies", accent: LIME },
 ];
 
-export default function App() {
+export default function App({ themeName = "hud", setThemeName = null }) {
   const [activeTab, setActiveTab] = useState("infra");
   const [time, setTime] = useState(new Date());
-  const [themeName, setThemeName] = useState("hud");
   const t = themeName === "clean" ? CLEAN : HUD;
 
   useEffect(() => {
@@ -1193,7 +1195,7 @@ export default function App() {
                 <span>LIKES <span style={{ color: t.g }}>22.8K</span></span>
                 <span>{time.toLocaleTimeString("en-US", { hour12: false })}</span>
               </div>
-              <ThemeToggle theme={themeName} onToggle={() => setThemeName(n => n === "clean" ? "hud" : "clean")} />
+              <ThemeToggle theme={themeName} onToggle={() => setThemeName && setThemeName(n => n === "clean" ? "hud" : "clean")} />
             </div>
           </div>
           {/* QUEST BAR */}

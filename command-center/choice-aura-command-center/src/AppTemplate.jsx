@@ -706,10 +706,12 @@ const TABS = [
   { id: "strategies", label: "Strategies", accentKey: "gold" },
 ];
 
-export default function AppTemplate() {
+export default function AppTemplate({ themeName: themeNameProp = null, setThemeName: setThemeNameProp = null }) {
   const [activeTab, setActiveTab] = useState("infra");
   const [time, setTime] = useState(new Date());
-  const [themeName, setThemeName] = useState("clean");
+  const [internalTheme, setInternalTheme] = useState("clean");
+  const themeName = themeNameProp !== null ? themeNameProp : internalTheme;
+  const setThemeName = setThemeNameProp !== null ? setThemeNameProp : setInternalTheme;
   const t = themeName === "clean" ? CLEAN : HUD;
 
   useEffect(() => {
