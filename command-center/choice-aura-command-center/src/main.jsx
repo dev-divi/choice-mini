@@ -5,8 +5,8 @@ import App from './App.jsx'
 import AppTemplate from './AppTemplate.jsx'
 
 function Root() {
-  const [mode, setMode] = useState('dashboard'); // 'dashboard' | 'demo'
-  const [themeName, setThemeName] = useState('hud'); // 'hud' | 'clean'
+  const [mode, setMode] = useState('demo'); // 'dashboard' | 'demo'
+  const [themeName, setThemeName] = useState('clean'); // 'hud' | 'clean'
 
   const isClean = themeName === 'clean';
 
