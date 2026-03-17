@@ -1,4 +1,44 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, createContext, useContext, useRef } from "react";
+
+// ─── TIKTOK LIVE STATS ───────────────────────────────────────────────
+function formatCount(n) {
+  if (n == null) return null;
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+  return n.toLocaleString();
+}
+
+function useTikTokStats(handle = "tylerchoice") {
+  const [stats, setStats] = useState({ followers: null, likes: null, loading: true, error: false });
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    const PROXY = "https://api.allorigins.win/get?url=";
+    const TT_URL = encodeURIComponent(`https://www.tiktok.com/@${handle}`);
+
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${PROXY}${TT_URL}`, { cache: "no-store" });
+        const data = await res.json();
+        const html = data.contents || "";
+        const match = html.match(/<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application\/json">([\s\S]*?)<\/script>/);
+        if (!match) throw new Error("no script tag");
+        const json = JSON.parse(match[1]);
+        const s = json?.["webapp.user-detail"]?.userInfo?.stats;
+        if (!s) throw new Error("no stats");
+        setStats({ followers: formatCount(s.followerCount), likes: formatCount(s.heartCount), loading: false, error: false, ts: Date.now() });
+      } catch {
+        setStats(prev => ({ ...prev, loading: false, error: true }));
+      }
+    };
+
+    fetchStats();
+    timerRef.current = setInterval(fetchStats, 5 * 60 * 1000);
+    return () => clearInterval(timerRef.current);
+  }, [handle]);
+
+  return stats;
+}
 
 const CYAN = "#00f0ff";
 const MAGENTA = "#ff0066";
@@ -583,6 +623,7 @@ function ProjectsView() {
 
 function PlayerView() {
   const t = useT();
+  const liveStats = useTikTokStats("tylerchoice");
   const activeContent = CONTENT_NODES.filter(n => n.status === "active").length;
   const totalContent = CONTENT_NODES.length;
   const activeCommerce = COMMERCE_NODES.filter(n => n.status === "active" || n.status === "new").length;
@@ -601,12 +642,14 @@ function PlayerView() {
             <div style={{ fontFamily: t.fontBody, fontWeight: 900, fontSize: 28, color: t.text, marginBottom: 2 }}>TYLER CHOICE</div>
             <div style={{ fontSize: 12, color: GOLD, fontFamily: "'Courier New', monospace", letterSpacing: 2 }}>CHOICE AURA — FOUNDER</div>
             <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
-              {[["29", "DAY", CYAN], ["1,510", "FOLLOWERS", GOLD], ["22.8K", "LIKES", GREEN], ["1,100", "BOOKMARKS", MAGENTA]].map(([val, lbl, col], i) => (
+              {[["29", "DAY", CYAN], [liveStats.followers || "1,510", "FOLLOWERS", GOLD], [liveStats.likes || "22.8K", "LIKES", GREEN], ["1,100", "BOOKMARKS", MAGENTA]].map(([val, lbl, col], i) => (
                 <div key={i} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 22, fontWeight: 900, color: col, fontFamily: "'Courier New', monospace" }}>{val}</div>
                   <div style={{ fontSize: 8, color: t.textMuted, letterSpacing: 2 }}>{lbl}</div>
                 </div>
               ))}
+              {liveStats.error && <div style={{ fontSize: 8, color: RED, fontFamily: "'Courier New', monospace", letterSpacing: 1, alignSelf: "flex-end" }}>⚠ LIVE OFFLINE</div>}
+              {!liveStats.error && !liveStats.loading && <div style={{ fontSize: 8, color: GREEN, fontFamily: "'Courier New', monospace", letterSpacing: 1, alignSelf: "flex-end", opacity: 0.6 }}>● LIVE</div>}
             </div>
           </div>
         </div>
@@ -1154,6 +1197,7 @@ const TABS = [
 export default function App({ themeName = "hud", setThemeName = null }) {
   const [activeTab, setActiveTab] = useState("infra");
   const [time, setTime] = useState(new Date());
+  const liveStats = useTikTokStats("tylerchoice");
   const t = themeName === "clean" ? CLEAN : HUD;
 
   useEffect(() => {
@@ -1189,10 +1233,12 @@ export default function App({ themeName = "hud", setThemeName = null }) {
               <div style={{ fontSize: 10, letterSpacing: 3, color: t.textLabel, marginTop: 2 }}>COMMAND CENTER — OPERATOR HUD + CLAUDE BACKEND CONTEXT</div>
             </div>
             <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
-              <div style={{ display: "flex", gap: 18, fontSize: 10, letterSpacing: 2, color: t.textMuted, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 18, fontSize: 10, letterSpacing: 2, color: t.textMuted, flexWrap: "wrap", alignItems: "center" }}>
                 <span>DAY <span style={{ color: t.g }}>29</span></span>
-                <span>FOLLOWERS <span style={{ color: t.g }}>1,510</span></span>
-                <span>LIKES <span style={{ color: t.g }}>22.8K</span></span>
+                <span>FOLLOWERS <span style={{ color: t.g }}>{liveStats.followers || "1,510"}</span></span>
+                <span>LIKES <span style={{ color: t.g }}>{liveStats.likes || "22.8K"}</span></span>
+                {!liveStats.loading && !liveStats.error && <span style={{ fontSize: 8, color: GREEN, opacity: 0.5 }}>●</span>}
+                {liveStats.error && <span style={{ fontSize: 8, color: RED, opacity: 0.7 }}>⚠</span>}
                 <span>{time.toLocaleTimeString("en-US", { hour12: false })}</span>
               </div>
               <ThemeToggle theme={themeName} onToggle={() => setThemeName && setThemeName(n => n === "clean" ? "hud" : "clean")} />
