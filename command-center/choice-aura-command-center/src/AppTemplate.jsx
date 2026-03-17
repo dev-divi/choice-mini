@@ -383,7 +383,7 @@ function InfrastructureView() {
   const t = useT();
   return (
     <div>
-      <SectionHeader>Three Jobs — Current Situation</SectionHeader>
+      <SectionHeader>Three Jobs — What You're Working On</SectionHeader>
       <ThreeJobsPanel />
       <SectionHeader>Revenue Paths</SectionHeader>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
@@ -767,11 +767,11 @@ export default function AppTemplate({ themeName: themeNameProp = null, setThemeN
             <div style={{ display: "flex", gap: t.name === "clean" ? 32 : 40, flexWrap: "wrap" }}>
               <div style={{ flex: 1, minWidth: 180 }}>
                 <div style={{ fontSize: 9, color: t.textLabel, letterSpacing: 2, textTransform: "uppercase", fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, marginBottom: 6, fontWeight: 700 }}>What it is</div>
-                <div style={{ fontSize: t.name === "clean" ? 13 : 11, color: t.textSub, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, lineHeight: 1.7 }}>A personal dashboard. A life/business HQ. A command system.</div>
+                <div style={{ fontSize: t.name === "clean" ? 13 : 11, color: t.textSub, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, lineHeight: 1.7 }}>A personal dashboard. A life/business HQ. An interface between human and AI.</div>
               </div>
               <div style={{ flex: 1, minWidth: 180 }}>
                 <div style={{ fontSize: 9, color: t.textLabel, letterSpacing: 2, textTransform: "uppercase", fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, marginBottom: 6, fontWeight: 700 }}>What it does</div>
-                <div style={{ fontSize: t.name === "clean" ? 13 : 11, color: t.textSub, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, lineHeight: 1.7 }}>Tracks your jobs, revenue, agents, projects, and player profile — all in one place.</div>
+                <div style={{ fontSize: t.name === "clean" ? 13 : 11, color: t.textSub, fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, lineHeight: 1.7 }}>Tracks your jobs, revenue, agents, projects, and player profile — all in one place. Tell Claude what you want added to it.</div>
               </div>
               <div style={{ flex: 1, minWidth: 180 }}>
                 <div style={{ fontSize: 9, color: t.textLabel, letterSpacing: 2, textTransform: "uppercase", fontFamily: t.name === "clean" ? t.fontSans : t.fontMono, marginBottom: 6, fontWeight: 700 }}>Who it's for</div>
