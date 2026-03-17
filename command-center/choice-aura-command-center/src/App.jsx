@@ -13,23 +13,62 @@ function useTikTokStats(handle = "tylerchoice") {
   const timerRef = useRef(null);
 
   useEffect(() => {
-    const PROXY = "https://api.allorigins.win/get?url=";
-    const TT_URL = encodeURIComponent(`https://www.tiktok.com/@${handle}`);
+    const PROFILE_URL = `https://www.tiktok.com/@${handle}`;
+
+    // Three proxies tried in order — first success wins
+    const PROXIES = [
+      (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+      (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+      (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+    ];
+
+    // Parse TikTok HTML — tries multiple embedded data formats
+    const parseHTML = (html) => {
+      // Format 1: __UNIVERSAL_DATA_FOR_REHYDRATION__ (newer TikTok)
+      const m1 = html.match(/<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)<\/script>/);
+      if (m1) {
+        try {
+          const json = JSON.parse(m1[1]);
+          const s = json?.["webapp.user-detail"]?.userInfo?.stats;
+          if (s?.followerCount != null) return { followers: s.followerCount, likes: s.heartCount };
+        } catch { /* try next */ }
+      }
+      // Format 2: SIGI_STATE (older TikTok)
+      const m2 = html.match(/window\["SIGI_STATE"\]\s*=\s*(\{[\s\S]*?\});\s*window\[/);
+      if (m2) {
+        try {
+          const json = JSON.parse(m2[1]);
+          const users = json?.UserModule?.users || {};
+          const uid = Object.keys(users)[0];
+          const s = json?.UserModule?.stats?.[uid];
+          if (s?.followerCount != null) return { followers: s.followerCount, likes: s.heartCount };
+        } catch { /* try next */ }
+      }
+      // Format 3: __NEXT_DATA__ (some TikTok pages)
+      const m3 = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+      if (m3) {
+        try {
+          const json = JSON.parse(m3[1]);
+          const s = json?.props?.pageProps?.userInfo?.stats;
+          if (s?.followerCount != null) return { followers: s.followerCount, likes: s.heartCount };
+        } catch { /* try next */ }
+      }
+      throw new Error("no parseable data in response");
+    };
 
     const fetchStats = async () => {
-      try {
-        const res = await fetch(`${PROXY}${TT_URL}`, { cache: "no-store" });
-        const data = await res.json();
-        const html = data.contents || "";
-        const match = html.match(/<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application\/json">([\s\S]*?)<\/script>/);
-        if (!match) throw new Error("no script tag");
-        const json = JSON.parse(match[1]);
-        const s = json?.["webapp.user-detail"]?.userInfo?.stats;
-        if (!s) throw new Error("no stats");
-        setStats({ followers: formatCount(s.followerCount), likes: formatCount(s.heartCount), loading: false, error: false, ts: Date.now() });
-      } catch {
-        setStats(prev => ({ ...prev, loading: false, error: true }));
+      for (const makeProxy of PROXIES) {
+        try {
+          const res = await fetch(makeProxy(PROFILE_URL), { cache: "no-store" });
+          if (!res.ok) continue;
+          const ct = res.headers.get("content-type") || "";
+          let html = ct.includes("json") ? ((await res.json()).contents || "") : await res.text();
+          const { followers, likes } = parseHTML(html);
+          setStats({ followers: formatCount(followers), likes: formatCount(likes), loading: false, error: false, ts: Date.now() });
+          return; // success — stop trying proxies
+        } catch { continue; }
       }
+      setStats(prev => ({ ...prev, loading: false, error: true }));
     };
 
     fetchStats();
