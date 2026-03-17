@@ -682,7 +682,7 @@ function PlayerView() {
             <div style={{ fontFamily: t.fontBody, fontWeight: 900, fontSize: 28, color: t.text, marginBottom: 2 }}>TYLER CHOICE</div>
             <div style={{ fontSize: 12, color: GOLD, fontFamily: "'Courier New', monospace", letterSpacing: 2 }}>CHOICE AURA — FOUNDER</div>
             <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
-              {[["29", "DAY", CYAN], [liveStats.followers || "1,510", "FOLLOWERS", GOLD], [liveStats.likes || "22.8K", "LIKES", GREEN], ["1,100", "BOOKMARKS", MAGENTA]].map(([val, lbl, col], i) => (
+              {[[liveStats.followers || "1,510", "FOLLOWERS", GOLD], [liveStats.likes || "22.8K", "LIKES", GREEN]].map(([val, lbl, col], i) => (
                 <div key={i} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 22, fontWeight: 900, color: col, fontFamily: "'Courier New', monospace" }}>{val}</div>
                   <div style={{ fontSize: 8, color: t.textMuted, letterSpacing: 2 }}>{lbl}</div>
@@ -1274,7 +1274,6 @@ export default function App({ themeName = "hud", setThemeName = null }) {
             </div>
             <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
               <div style={{ display: "flex", gap: 18, fontSize: 10, letterSpacing: 2, color: t.textMuted, flexWrap: "wrap", alignItems: "center" }}>
-                <span>DAY <span style={{ color: t.g }}>29</span></span>
                 <span>FOLLOWERS <span style={{ color: t.g }}>{liveStats.followers || "1,510"}</span></span>
                 <span>LIKES <span style={{ color: t.g }}>{liveStats.likes || "22.8K"}</span></span>
                 {!liveStats.loading && !liveStats.error && <span style={{ fontSize: 8, color: GREEN, opacity: 0.5 }}>●</span>}
