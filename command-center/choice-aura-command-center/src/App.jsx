@@ -1,4 +1,84 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, createContext, useContext, useRef } from "react";
+
+// ─── TIKTOK LIVE STATS ───────────────────────────────────────────────
+function formatCount(n) {
+  if (n == null) return null;
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+  return n.toLocaleString();
+}
+
+function useTikTokStats(handle = "tylerchoice") {
+  const [stats, setStats] = useState({ followers: null, likes: null, loading: true, error: false });
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    const PROFILE_URL = `https://www.tiktok.com/@${handle}`;
+
+    // Three proxies tried in order — first success wins
+    const PROXIES = [
+      (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+      (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+      (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+    ];
+
+    // Parse TikTok HTML — tries multiple embedded data formats
+    const parseHTML = (html) => {
+      // Format 1: __UNIVERSAL_DATA_FOR_REHYDRATION__ (newer TikTok)
+      const m1 = html.match(/<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)<\/script>/);
+      if (m1) {
+        try {
+          const json = JSON.parse(m1[1]);
+          const scope = json?.["__DEFAULT_SCOPE__"] ?? json;
+          const s = scope?.["webapp.user-detail"]?.userInfo?.stats;
+          if (s?.followerCount != null) return { followers: s.followerCount, likes: s.heartCount };
+        } catch { /* try next */ }
+      }
+      // Format 2: SIGI_STATE (older TikTok)
+      const m2 = html.match(/window\["SIGI_STATE"\]\s*=\s*(\{[\s\S]*?\});\s*window\[/);
+      if (m2) {
+        try {
+          const json = JSON.parse(m2[1]);
+          const users = json?.UserModule?.users || {};
+          const uid = Object.keys(users)[0];
+          const s = json?.UserModule?.stats?.[uid];
+          if (s?.followerCount != null) return { followers: s.followerCount, likes: s.heartCount };
+        } catch { /* try next */ }
+      }
+      // Format 3: __NEXT_DATA__ (some TikTok pages)
+      const m3 = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+      if (m3) {
+        try {
+          const json = JSON.parse(m3[1]);
+          const s = json?.props?.pageProps?.userInfo?.stats;
+          if (s?.followerCount != null) return { followers: s.followerCount, likes: s.heartCount };
+        } catch { /* try next */ }
+      }
+      throw new Error("no parseable data in response");
+    };
+
+    const fetchStats = async () => {
+      for (const makeProxy of PROXIES) {
+        try {
+          const res = await fetch(makeProxy(PROFILE_URL), { cache: "no-store" });
+          if (!res.ok) continue;
+          const ct = res.headers.get("content-type") || "";
+          let html = ct.includes("json") ? ((await res.json()).contents || "") : await res.text();
+          const { followers, likes } = parseHTML(html);
+          setStats({ followers: formatCount(followers), likes: formatCount(likes), loading: false, error: false, ts: Date.now() });
+          return; // success — stop trying proxies
+        } catch { continue; }
+      }
+      setStats(prev => ({ ...prev, loading: false, error: true }));
+    };
+
+    fetchStats();
+    timerRef.current = setInterval(fetchStats, 5 * 60 * 1000);
+    return () => clearInterval(timerRef.current);
+  }, [handle]);
+
+  return stats;
+}
 
 const CYAN = "#00f0ff";
 const MAGENTA = "#ff0066";
@@ -583,6 +663,7 @@ function ProjectsView() {
 
 function PlayerView() {
   const t = useT();
+  const liveStats = useTikTokStats("tylerchoice");
   const activeContent = CONTENT_NODES.filter(n => n.status === "active").length;
   const totalContent = CONTENT_NODES.length;
   const activeCommerce = COMMERCE_NODES.filter(n => n.status === "active" || n.status === "new").length;
@@ -601,12 +682,14 @@ function PlayerView() {
             <div style={{ fontFamily: t.fontBody, fontWeight: 900, fontSize: 28, color: t.text, marginBottom: 2 }}>TYLER CHOICE</div>
             <div style={{ fontSize: 12, color: GOLD, fontFamily: "'Courier New', monospace", letterSpacing: 2 }}>CHOICE AURA — FOUNDER</div>
             <div style={{ display: "flex", gap: 16, marginTop: 12, flexWrap: "wrap" }}>
-              {[["29", "DAY", CYAN], ["1,510", "FOLLOWERS", GOLD], ["22.8K", "LIKES", GREEN], ["1,100", "BOOKMARKS", MAGENTA]].map(([val, lbl, col], i) => (
+              {[["29", "DAY", CYAN], [liveStats.followers || "1,510", "FOLLOWERS", GOLD], [liveStats.likes || "22.8K", "LIKES", GREEN], ["1,100", "BOOKMARKS", MAGENTA]].map(([val, lbl, col], i) => (
                 <div key={i} style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 22, fontWeight: 900, color: col, fontFamily: "'Courier New', monospace" }}>{val}</div>
                   <div style={{ fontSize: 8, color: t.textMuted, letterSpacing: 2 }}>{lbl}</div>
                 </div>
               ))}
+              {liveStats.error && <div style={{ fontSize: 8, color: RED, fontFamily: "'Courier New', monospace", letterSpacing: 1, alignSelf: "flex-end" }}>⚠ LIVE OFFLINE</div>}
+              {!liveStats.error && !liveStats.loading && <div style={{ fontSize: 8, color: GREEN, fontFamily: "'Courier New', monospace", letterSpacing: 1, alignSelf: "flex-end", opacity: 0.6 }}>● LIVE</div>}
             </div>
           </div>
         </div>
@@ -1154,6 +1237,7 @@ const TABS = [
 export default function App({ themeName = "hud", setThemeName = null }) {
   const [activeTab, setActiveTab] = useState("infra");
   const [time, setTime] = useState(new Date());
+  const liveStats = useTikTokStats("tylerchoice");
   const t = themeName === "clean" ? CLEAN : HUD;
 
   useEffect(() => {
@@ -1189,10 +1273,12 @@ export default function App({ themeName = "hud", setThemeName = null }) {
               <div style={{ fontSize: 10, letterSpacing: 3, color: t.textLabel, marginTop: 2 }}>COMMAND CENTER — OPERATOR HUD + CLAUDE BACKEND CONTEXT</div>
             </div>
             <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap" }}>
-              <div style={{ display: "flex", gap: 18, fontSize: 10, letterSpacing: 2, color: t.textMuted, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 18, fontSize: 10, letterSpacing: 2, color: t.textMuted, flexWrap: "wrap", alignItems: "center" }}>
                 <span>DAY <span style={{ color: t.g }}>29</span></span>
-                <span>FOLLOWERS <span style={{ color: t.g }}>1,510</span></span>
-                <span>LIKES <span style={{ color: t.g }}>22.8K</span></span>
+                <span>FOLLOWERS <span style={{ color: t.g }}>{liveStats.followers || "1,510"}</span></span>
+                <span>LIKES <span style={{ color: t.g }}>{liveStats.likes || "22.8K"}</span></span>
+                {!liveStats.loading && !liveStats.error && <span style={{ fontSize: 8, color: GREEN, opacity: 0.5 }}>●</span>}
+                {liveStats.error && <span style={{ fontSize: 8, color: RED, opacity: 0.7 }}>⚠</span>}
                 <span>{time.toLocaleTimeString("en-US", { hour12: false })}</span>
               </div>
               <ThemeToggle theme={themeName} onToggle={() => setThemeName && setThemeName(n => n === "clean" ? "hud" : "clean")} />
