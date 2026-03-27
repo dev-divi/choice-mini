@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, useRef } from "react";
+import { useState, useEffect, createContext, useContext, useRef, useCallback } from "react";
 
 // ─── TIKTOK LIVE STATS ───────────────────────────────────────────────
 function formatCount(n) {
@@ -133,6 +133,7 @@ const REVENUE_PATHS = [
   { amount: "$67", label: "per conversion", source: "TikTok Commission — Linktree", status: "live" },
   { amount: "8.5%", label: "per sale", source: "Amazon Affiliate — Linktree", status: "live" },
   { amount: "$25", label: "per sale", source: "CapCut Edits Tutorial", status: "active" },
+  { amount: "1:1", label: "mentorship sessions", source: "Choice Aura", status: "active", link: "https://choiceaura.netlify.app/" },
 ];
 
 const CONTENT_NODES = [
@@ -145,7 +146,7 @@ const CONTENT_NODES = [
 ];
 
 const COMMERCE_NODES = [
-  { type: "job 2 — affiliate", name: "TikTok Shop Affiliate", detail: "5 videos/week cap\nEmbed products in main content — doesn't look like an ad", status: "pending", tag: null },
+  { type: "job 1 — affiliate", name: "TikTok Shop Affiliate", detail: "5 videos/week cap\nEmbed products in main content — doesn't look like an ad", status: "needs planning", tag: "NEEDS PLANNING" },
   { type: "job 3 — dropshipping", name: "TikTok Shop Seller (AutoDS)", detail: "Full AI system built\nCan run parts manually without API keys", status: "pending", tag: null },
   { type: "storefront", name: "Shopify Store", detail: "choiceaurastore.myshopify.com\n3-month free trial active\nNeeds product + branding overhaul", status: "pending", tag: "NEEDS WORK" },
   { type: "link hub", name: "Linktree", detail: "linktr.ee/tylerchoice\n$67 TikTok commission\nAmazon affiliate 8.5%", status: "active", tag: "LIVE — EARNING" },
@@ -158,14 +159,16 @@ const CLIENT_NODES = [
   { type: "⚡ PRIMARY PLAY", name: "DMs — Work These NOW", detail: "Warm leads from 20K viral video\nThis is the unlock for everything else\nConsulting $ → buys samples → buys API keys\nThis is the move.", status: "active", tag: "ACTIVE PLAY" },
 ];
 
+const AI_WORKFLOW_AGENTS = [];
+
+const SOCIAL_MEDIA = [
+  { name: "Fall Asleep While I Play Elden Ring Series", status: "ready to push", desc: "YouTube series. Ambient, long-form gameplay content designed for sleep/background viewing.", icon: "🎮" },
+  { name: "Day Series Instagram Campaign", status: "ready to push", desc: "Day series auto-posting to Instagram. Bio CTA live.", icon: "📺" },
+];
+
 const EXTERNAL_PROJECTS = [
   { name: "Journal Ad Campaign", status: "planning", desc: "Up to 100 advertisements for journals sold on TikTok Shop. Show prototype in journal, show Claude creating it.", icon: "📓" },
-  { name: "Day Series FB/IG Campaign", status: "in progress", desc: "Running autonomously. Day series auto-posting to IG, crossposting to FB separately. Queue ends ~March 17 (Day 11). Bio CTA live on IG. Facebook bio still pending.", icon: "📺" },
-  { name: "Clark — Shop Automation", status: "complete", desc: "AI agents: find products, find suppliers, setup dropshipping stores, find & refine viral scripts.\n\nWorktree: githubswarm → choicemini > .claude > worktrees > inspiring-edison", icon: "🤖" },
-  { name: "Salina — Frontend Automation", status: "in progress", desc: "Frontend automation project. Viral script created through nanobanana. Look into Higgsfield AI.", icon: "🎬" },
-  { name: "Nina — Product Factory", status: "not started", desc: "Agent researches audience needs → creates products/MVPs → launches them → runs email/ad campaigns.", icon: "🏭" },
-  { name: "Nami — Crypto Agent", status: "not started", desc: "Allocates resources and trades based on a PDF strategy style file.", icon: "₿" },
-  { name: "Zoro — Competitor Agent", status: "not started", desc: "Research & reverse-engineering of specific TikTok influencers. Requires OpenClaw.", icon: "🔍" },
+  { name: "Salina — Frontend Automation", status: "on hold", desc: "Frontend automation project. Viral script created through nanobanana. Look into Higgsfield AI.", icon: "🎬" },
 ];
 
 const INTERNAL_PROJECTS = [
@@ -195,9 +198,89 @@ const TYLER_PROMPTS = [
 ];
 
 const THREE_JOBS = [
-  { num: "01", title: "1:1 Services", color: "#00ff88", status: "ACTIVE — MOVE NOW", unlock: "Already unlocked", detail: "", blocker: null },
-  { num: "02", title: "TikTok Shop Affiliate", color: "#00ff88", status: "ACTIVE", unlock: "", detail: "5 videos/week cap. Embed products naturally into main content — doesn't look like an ad. Same products can go in main content and drive commission. Scales without extra effort.", blocker: null },
-  { num: "03", title: "Dropshipping (AutoDS)", color: "#ff6a00", status: "SYSTEM BUILT", unlock: "", detail: "Full AI automation system built. Can source, list, and fulfill without touching product. Can run parts manually while waiting for API keys. High exponential upside.", blocker: null },
+  {
+    num: "01", title: "Tyler Choice TikTok", color: "#00ff88", status: "ACTIVE — MOVE NOW",
+    detail: "Main TikTok presence. Drive commissions through Shop Affiliate and close 1:1 consulting clients from DMs.",
+    blocker: null,
+    subtrees: [
+      {
+        name: "TikTok Shop Affiliate", status: "needs planning",
+        children: [
+          { name: "Journal Ad Campaign", status: "planning" }
+        ]
+      },
+      { name: "1:1 Mentorship", status: "active", link: "https://choiceaura.netlify.app/" },
+      {
+        name: "TikTok Live", status: "planned",
+        children: [
+          { name: "TETR.IO", status: "planned" },
+          { name: "EDM Livestream", status: "planned" },
+        ]
+      },
+      { name: "90 Day Challenge", status: "active", nameColor: "#ff2244", note: "NEEDS ATTENTION !!", children: [
+        { name: "Sharing Prompts Planning", status: "needs work" },
+      ]},
+    ]
+  },
+  {
+    num: "02", title: "Choice Aura Shop TikTok", color: "#00f0ff", status: "IN PROGRESS",
+    detail: "Selling physical products through TikTok Shop. Campaigns running in parallel.",
+    blocker: null,
+    subtrees: [
+      { name: "One Piece Tape Campaign", status: "in progress", detail: "Day 3", nameColor: "#ff2244", note: "NEEDS ATTENTION !!" },
+      { name: "Printify T-Shirts Campaign", status: "in progress" },
+      { name: "Salina — Frontend Automation", status: "on hold" },
+      { name: "Shopify Store", status: "on hold" },
+    ]
+  },
+  {
+    num: "03", title: "AI Automation", color: "#ff6a00", status: "BUILDING",
+    detail: "AI agent pipeline: Clark (shop automation), Nina (product factory), Nami (crypto), Zoro (competitor analysis).",
+    blocker: null,
+    subtrees: [
+      {
+        name: "Digital Twin", status: "in progress",
+        children: [
+          {
+            name: "HeyGen Digital Twin", status: "active", link: "https://app.heygen.com/create-v4/b8491a2df4fd4649a4bd7352855e90eb?avatarCreated=true",
+            children: [
+              { name: "Tutorial", status: "active", link: "https://www.youtube.com/watch?v=heLwJQBDklU" },
+            ]
+          },
+          {
+            name: "Kling AI NextGen Initiative Grant", status: "in progress",
+            children: [
+              { name: "Kling Dashboard", status: "ready to start", link: "https://app.klingai.com/global/omni/new?klingVersion=3.0-omni&model=video" },
+              { name: "Kling AI NextGen Initiative — 300K Grant", status: "needs work", link: "https://docs.google.com/forms/d/e/1FAIpQLSeitcH0m9TUrC9ryA_v78gCdvgs-3epmfSlXhWuA3PYjB48Ug/formResponse" },
+            ]
+          },
+        ]
+      },
+      {
+        name: "Hacker AI Production", status: "planned",
+        children: [
+          {
+            name: "Google Docs", status: "active",
+            children: [
+              { name: "Hacker Route: AI Production Workflow", status: "active", link: "https://docs.google.com/document/d/1hWSVdlY90eKe7Gh1suRKmRVYxykwkJSok3_3HpmWNF0/edit?tab=t.0" },
+              { name: "Kling 3.0: Solid-State Video Prompting", status: "active", link: "https://docs.google.com/document/d/1AbF8P7FaQ4gpLAA4ywvPuhrg-gj1rUH54rN8kpKcTpc/edit?tab=t.0" },
+              { name: "AI Video Production: Art Director to Cinematographer", status: "active", link: "https://docs.google.com/spreadsheets/d/1NYNqzi-_xkDKbsOu06qsR6N1kMEosqDVegC9esrvjpo/edit?gid=781853171#gid=781853171" },
+            ]
+          },
+        ]
+      },
+    ]
+  },
+  {
+    num: "04", title: "Portfolio", color: "#a855f7", status: "PLANNED",
+    detail: "Portfolio presence — projects, work, and identity.",
+    blocker: null,
+    subtrees: [
+      { name: "CapCut Edits Tutorial", status: "active", price: "$25", link: "https://tr.ee/3b-1UGQYAJ" },
+      { name: "Operator Dashboard", status: "active", link: "https://choice-operator-dashboard.netlify.app/" },
+      { name: "Clark — Shop Automation", status: "complete", link: "" },
+    ]
+  },
 ];
 
 // ─── AGENTS DATA ──────────────────────────────────────────────────────
@@ -430,10 +513,13 @@ const statusColor = (s, t) => {
   const m = t?.name === "clean" ? t.mg : MAGENTA;
   const e = t?.name === "clean" ? t.em : EMBER;
   if (s === "active" || s === "live" || s === "deployed") return g;
+  if (s === "ready to push") return c;
   if (s === "in progress") return c;
   if (s === "complete") return gold;
   if (s === "new" || s === "just unlocked") return m;
-  if (s === "pending" || s === "planning" || s === "due tonight" || s === "scheduled") return e;
+  if (s === "pending" || s === "planning" || s === "needs planning" || s === "needs work" || s === "due tonight" || s === "scheduled") return e;
+  if (s === "ready to start") return c;
+  if (s === "on hold") return t?.name === "clean" ? t.mg : MAGENTA;
   if (s === "not started" || s === "uncreated" || s === "queued" || s === "not deployed") return t?.name === "clean" ? t.textFaint : "rgba(255,255,255,0.2)";
   return t?.name === "clean" ? t.textFaint : "rgba(255,255,255,0.15)";
 };
@@ -501,6 +587,16 @@ function SectionHeader({ children, color }) {
   );
 }
 
+function CatHeader({ children, color = CYAN }) {
+  const t = useT();
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "26px 0 10px" }}>
+      <div style={{ width: 3, height: 26, background: color, boxShadow: t.name === "hud" ? `0 0 8px ${color}` : "none", flexShrink: 0 }} />
+      <span style={{ fontFamily: "'Barlow Semi Condensed', 'Arial Black', sans-serif", fontSize: 22, fontWeight: 700, letterSpacing: 3, color, textTransform: "uppercase" }}>{children}</span>
+    </div>
+  );
+}
+
 function NodeCard({ node }) {
   const t = useT();
   const [hovered, setHovered] = useState(false);
@@ -520,14 +616,18 @@ function NodeCard({ node }) {
 function RevenueCard({ r }) {
   const t = useT();
   const [hovered, setHovered] = useState(false);
-  return (
+  const inner = (
     <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ border: `1px solid ${hovered ? t.g + (t.name === "clean" ? "80" : "40") : t.name === "clean" ? t.border : "rgba(255,215,0,0.15)"}`, padding: "14px 18px", background: hovered ? (t.name === "clean" ? t.surfaceHover : "rgba(255,215,0,0.04)") : t.surface, transition: "all 0.3s", textAlign: "center", transform: hovered ? "translateY(-2px)" : "none", boxShadow: hovered && t.name === "clean" ? "0 4px 16px rgba(0,0,0,0.1)" : "none" }}>
+      style={{ border: `1px solid ${hovered ? t.g + (t.name === "clean" ? "80" : "40") : t.name === "clean" ? t.border : "rgba(255,215,0,0.15)"}`, padding: "14px 18px", background: hovered ? (t.name === "clean" ? t.surfaceHover : "rgba(255,215,0,0.04)") : t.surface, transition: "all 0.3s", textAlign: "center", transform: hovered ? "translateY(-2px)" : "none", boxShadow: hovered && t.name === "clean" ? "0 4px 16px rgba(0,0,0,0.1)" : "none", cursor: r.link ? "pointer" : "default" }}>
       <div style={{ fontFamily: t.fontMono, fontWeight: 900, fontSize: 26, color: t.g, textShadow: t.name === "hud" ? `0 0 20px ${GOLD}30` : "none" }}>{r.amount}</div>
       <div style={{ fontSize: 10, color: t.textMuted, letterSpacing: 1, marginTop: 2 }}>{r.label}</div>
       <div style={{ fontSize: 11, color: t.textSub, marginTop: 6, fontFamily: t.fontBody }}>{r.source}</div>
+      {r.link && <div style={{ fontSize: 8, color: t.g, fontFamily: "'Courier New', monospace", letterSpacing: 2, marginTop: 6 }}>↗ OPEN</div>}
     </div>
   );
+  return r.link
+    ? <a href={r.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>{inner}</a>
+    : inner;
 }
 
 function ProjectCard({ project, accent = CYAN }) {
@@ -586,32 +686,695 @@ function CodexSection({ title, accent = EMBER, children, defaultOpen = false }) 
 }
 
 // ─── TAB VIEWS ───────────────────────────────────────────────────────
+function SubtreeRow({ sub, job, depth = 0 }) {
+  const t = useT();
+  const [expanded, setExpanded] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const sc = statusColor(sub.status, t);
+  const hasChildren = sub.children && sub.children.length > 0;
+
+  return (
+    <div style={{ marginBottom: 3 }}>
+      <div
+        onClick={e => { e.stopPropagation(); if (hasChildren) setExpanded(!expanded); }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: "flex", alignItems: "center", gap: 10,
+          padding: "10px 12px",
+          paddingLeft: 12 + depth * 24,
+          background: hovered ? `${job.color}12` : "transparent",
+          borderLeft: `3px solid ${hovered || expanded ? job.color + "80" : job.color + "20"}`,
+          cursor: hasChildren ? "pointer" : "default",
+          transition: "all 0.2s",
+        }}
+      >
+        {hasChildren && (
+          <span style={{
+            fontSize: 10, color: job.color, fontFamily: "'Courier New', monospace",
+            transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.2s",
+            flexShrink: 0, display: "inline-block",
+          }}>▶</span>
+        )}
+        {!hasChildren && <span style={{ width: 12, flexShrink: 0 }} />}
+        <span style={{ fontSize: 14, color: sub.nameColor ? sub.nameColor : (hovered ? t.text : t.textSub), fontFamily: t.fontBody, flex: 1, fontWeight: hovered ? 700 : 500, transition: "all 0.2s", letterSpacing: 0.3, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          {sub.name}
+          {sub.note && <span style={{ fontSize: 9, color: GOLD, fontFamily: "'Courier New', monospace", letterSpacing: 2, fontWeight: 700 }}>{sub.note}</span>}
+        </span>
+        {sub.price && (
+          <span style={{ fontSize: 13, fontWeight: 700, color: GOLD, fontFamily: "'Courier New', monospace", flexShrink: 0, textShadow: `0 0 8px ${GOLD}60` }}>{sub.price}</span>
+        )}
+        {sub.link && (
+          <a href={sub.link} target="_blank" rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            style={{ fontSize: 10, color: job.color, fontFamily: "'Courier New', monospace", letterSpacing: 1, textDecoration: "none", opacity: hovered ? 1 : 0.5, transition: "opacity 0.2s", flexShrink: 0 }}>
+            ↗ OPEN
+          </a>
+        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: sc, boxShadow: `0 0 6px ${sc}`, flexShrink: 0 }} />
+          <span style={{ color: sc, fontSize: 9, letterSpacing: 1.5, fontFamily: "'Courier New', monospace", textTransform: "uppercase" }}>{sub.status}</span>
+        </div>
+      </div>
+      {hasChildren && expanded && (
+        <div style={{ marginTop: 2 }}>
+          {sub.children.map((child, k) => (
+            <SubtreeRow key={k} sub={child} job={job} depth={depth + 1} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ThreeJobsPanel() {
   const t = useT();
   const [open, setOpen] = useState(null);
   return (
     <div style={{ marginBottom: 20 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 14 }}>
         {THREE_JOBS.map((job, i) => (
-          <div key={i} onClick={() => setOpen(open === i ? null : i)} style={{ border: `1px solid ${job.color}30`, padding: 16, background: t.name === "clean" ? t.surface : `${job.color}05`, cursor: "pointer", transition: "all 0.3s", boxShadow: open === i ? `0 0 20px ${job.color}15` : "none" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div key={i} style={{ border: `1px solid ${job.color}30`, background: t.name === "clean" ? t.surface : `${job.color}05`, transition: "all 0.3s", overflow: "hidden" }}>
+            {/* Top accent bar */}
+            <div style={{ height: 3, background: job.color, opacity: 0.8, boxShadow: t.name === "hud" ? `0 0 10px ${job.color}` : "none" }} />
+            {/* Job header — clickable for detail */}
+            <div onClick={() => setOpen(open === i ? null : i)} style={{ padding: "20px 20px 14px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <div style={{ fontFamily: "'Courier New', monospace", fontSize: 28, fontWeight: 900, color: t.name === "clean" ? job.color + "90" : job.color + "40", lineHeight: 1 }}>JOB {job.num}</div>
-                <div style={{ fontFamily: "system-ui", fontWeight: 800, fontSize: 16, color: t.text, marginTop: 4 }}>{job.title}</div>
-                <div style={{ fontSize: 9, color: job.color, fontFamily: "'Courier New', monospace", letterSpacing: 2, marginTop: 4 }}>{job.status}</div>
+                <div style={{ fontFamily: "'Courier New', monospace", fontSize: 30, fontWeight: 900, color: job.color + (t.name === "clean" ? "90" : "40"), lineHeight: 1 }}>JOB {job.num}</div>
+                <div style={{ fontFamily: "system-ui", fontWeight: 800, fontSize: 20, color: t.text, marginTop: 6 }}>{job.title}</div>
+                <div style={{ fontSize: 10, color: job.color, fontFamily: "'Courier New', monospace", letterSpacing: 2, marginTop: 5 }}>{job.status}</div>
               </div>
-              <PulsingDot color={job.color} size={8} />
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
+                <PulsingDot color={job.color} size={10} />
+                {job.detail && <span style={{ fontSize: 10, color: t.textLabel, fontFamily: "'Courier New', monospace", transform: open === i ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>▶</span>}
+              </div>
             </div>
-            {open === i && (
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${job.color}20` }}>
-                {job.detail && <div style={{ fontSize: 12, color: t.textSub, lineHeight: 1.7, marginBottom: 8 }}>{job.detail}</div>}
-                {job.blocker && <div style={{ fontSize: 10, color: t.re, fontFamily: "'Courier New', monospace", letterSpacing: 1 }}>⚠ {job.blocker}</div>}
-                {job.unlock && <div style={{ fontSize: 10, color: job.color, fontFamily: "'Courier New', monospace", letterSpacing: 1, marginTop: 6 }}>→ {job.unlock}</div>}
+            {/* Expanded detail */}
+            {open === i && job.detail && (
+              <div style={{ margin: "0 20px 14px", padding: "12px 14px", background: `${job.color}08`, borderLeft: `3px solid ${job.color}40` }}>
+                <div style={{ fontSize: 12, color: t.textSub, lineHeight: 1.8 }}>{job.detail}</div>
+                {job.blocker && <div style={{ fontSize: 11, color: RED, fontFamily: "'Courier New', monospace", letterSpacing: 1, marginTop: 8 }}>⚠ {job.blocker}</div>}
+              </div>
+            )}
+            {/* Subtree list */}
+            {job.subtrees && job.subtrees.length > 0 && (
+              <div style={{ padding: "0 10px 16px" }}>
+                <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: t.textLabel, letterSpacing: 3, padding: "6px 10px 8px", textTransform: "uppercase" }}>Branches</div>
+                {job.subtrees.map((sub, j) => (
+                  <SubtreeRow key={j} sub={sub} job={job} depth={0} />
+                ))}
               </div>
             )}
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function LinkBtn({ btn }) {
+  const [open, setOpen] = useState(false);
+  const btnStyle = {
+    padding: "13px 26px",
+    border: `1px solid ${btn.color}40`,
+    background: open ? `${btn.color}18` : `${btn.color}08`,
+    color: btn.color,
+    fontFamily: "'Barlow Semi Condensed', 'Arial Black', sans-serif",
+    fontSize: 15,
+    letterSpacing: 2,
+    fontWeight: 700,
+    cursor: "pointer",
+    transition: "all 0.2s",
+    display: "flex", alignItems: "center", gap: 10,
+    borderColor: open ? `${btn.color}80` : `${btn.color}40`,
+  };
+
+  if (btn.children) {
+    return (
+      <div style={{ position: "relative" }}>
+        <div style={btnStyle} onClick={() => setOpen(!open)}
+          onMouseEnter={e => { e.currentTarget.style.background = `${btn.color}18`; e.currentTarget.style.borderColor = `${btn.color}80`; }}
+          onMouseLeave={e => { if (!open) { e.currentTarget.style.background = `${btn.color}08`; e.currentTarget.style.borderColor = `${btn.color}40`; }}}
+        >
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: btn.color, display: "inline-block", boxShadow: `0 0 8px ${btn.color}`, flexShrink: 0 }} />
+          {btn.label}
+          <span style={{ fontSize: 10, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s", marginLeft: 2 }}>▼</span>
+        </div>
+        {open && (
+          <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 100, marginTop: 4, minWidth: "100%", border: `1px solid ${btn.color}40`, background: "#0a0a0f", boxShadow: `0 8px 24px rgba(0,0,0,0.6)` }}>
+            {btn.children.map((child, j) => (
+              <a key={j} href={child.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", display: "block" }}>
+                <div style={{ padding: "10px 16px", color: btn.color, fontFamily: "'Barlow Semi Condensed', sans-serif", fontSize: 12, letterSpacing: 1, fontWeight: 600, borderBottom: j < btn.children.length - 1 ? `1px solid ${btn.color}15` : "none", whiteSpace: "nowrap", transition: "background 0.15s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = `${btn.color}15`}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                >
+                  ↗ {child.label}
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <a href={btn.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+      <div style={btnStyle}
+        onMouseEnter={e => { e.currentTarget.style.background = `${btn.color}18`; e.currentTarget.style.borderColor = `${btn.color}80`; }}
+        onMouseLeave={e => { e.currentTarget.style.background = `${btn.color}08`; e.currentTarget.style.borderColor = `${btn.color}40`; }}
+      >
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: btn.color, display: "inline-block", boxShadow: `0 0 8px ${btn.color}`, flexShrink: 0 }} />
+        {btn.label} ↗
+      </div>
+    </a>
+  );
+}
+
+const QUICKSCRIPT_CATEGORIES = [
+  {
+    label: "PRODUCT + OFFER CREATION PROMPTS",
+    color: GOLD,
+    prompts: [
+      `Analyze this offer using value equation math and rewrite it 10x more compelling.`,
+      `Turn this product into 5 different monetisable offers: high-ticket, low-ticket, subscription, toolkit, agency.`,
+      `Create 12 new product variations based on unmet customer needs.`,
+      `Rewrite this offer in the style of Hormozi's $100M Offers framework.`,
+      `Identify 20 additional bonuses we could ethically add without increasing cost.`,
+      `Generate 8 'fast-action' bonus ideas for a limited-time launch.`,
+      `Turn this service into a productized, fixed-scope, fixed-price system.`,
+      `Break this offer into 10 modular components for upsells and downsells.`,
+      `Write a 12-month product roadmap with sequential offers.`,
+      `Create 15 micro-offers under £50 to build buyer intent.`,
+      `Improve this offer's clarity and guarantee: [paste offer]`,
+      `Identify 20 objections stopping someone buying this product.`,
+      `Turn these objections into 20 buying triggers.`,
+      `Create 6 high-value bundles that increase perceived value.`,
+      `Reposition this offer as a premium category king.`,
+      `Turn this in-person service into a scalable AI-powered system.`,
+      `Rewrite this offer for CEOs → rewrite for creators → rewrite for solopreneurs.`,
+      `Create 12 pricing-tier frameworks with rationale.`,
+      `Invent 20 new hooks tied to this product's transformation.`,
+      `Generate 20 'what's included' points for a landing page.`,
+      `Identify 15 irresistible guarantees.`,
+      `Turn this bland feature list into 20 emotional-benefit bullets.`,
+      `Create a competitor-proof angle for [product].`,
+      `List 12 potential add-on services that increase AOV.`,
+      `Build a 3-step upsell ladder.`,
+      `Turn this niche into 15 micro-niches to dominate.`,
+      `Create 6 niching frameworks for this offer.`,
+      `Craft a compelling mission-driven angle.`,
+      `Rewrite this offer for luxury buyers.`,
+      `Generate 10 real-world demonstrations that showcase value.`,
+      `Create an offer that shortcuts the user's hardest steps.`,
+      `Rewrite this product into a subscription with recurring value.`,
+      `Invent 8 new product lines based on buyer psychology.`,
+      `Do a 20-point offer audit.`,
+      `Generate 12 founder stories that strengthen the offer.`,
+      `Turn this product into a B2B licensing model.`,
+      `Rewrite the offer for US, UK, and EU buyers.`,
+      `Turn customer complaints into product upgrades.`,
+      `Create a 'done-with-you' version of this service.`,
+      `Build a version with AI automation as the core value.`,
+      `Generate 6 VIP premium tiers.`,
+      `Turn this digital product into a physical version.`,
+      `Turn this physical product into a digital companion.`,
+      `Create 12 onboarding frameworks.`,
+      `Write a product spec sheet with all benefits.`,
+      `Invent 10 'category creation' angles.`,
+      `Rewrite this offer to sell without discounts.`,
+      `Identify 10 places where perceived value is leaking.`,
+      `Turn this into a viral TikTok Shop bundle.`,
+      `Invent a new category name for this product.`,
+      `Create a launch stack with irresistible bonuses.`,
+      `List 20 'aha moments' that make users feel value.`,
+      `Rewrite the offer using prestige framing.`,
+      `Explain why this offer feels expensive and fix it.`,
+      `Turn this into a partnership or affiliate program.`,
+    ],
+  },
+  {
+    label: "MARKETING & ADS PROMPTS",
+    color: MAGENTA,
+    links: [
+      { icon: "💎", label: "Marketing & Ads Expert — Gemini", link: "https://gemini.google.com/gem/1Mp21czM4QC9Y8mrW2fmIjsDD4OPrmT3z?usp=sharing" },
+      { icon: "🤖", label: "Marketing & Ads Expert — OpenAI", link: "https://chatgpt.com/g/g-695c312e16848191be435f3e439a846f-marketing-and-ads-prompt-expert" },
+    ],
+    prompts: [
+      `Act as a performance marketer. Turn this website into 12 high-converting ad angles: [URL]`,
+      `Turn this product into 20 TikTok hooks based on curiosity, POV, and emotional payoff: [product]`,
+      `Create a full Meta Ads campaign structure for [niche] with budgets, audiences, and warm → cold funnels.`,
+      `Rewrite this landing page using $100M Offers principles: [paste copy]`,
+      `Analyze these competitors and extract their winning messaging patterns: [URLs]`,
+      `Give me 25 YouTube pre-roll ad scripts using the first 5-second 'scroll-break' rule for [product].`,
+      `Generate 15 UGC ad scripts following the 'Problem → Chaos → Solution' format.`,
+      `Write 10 long-form advertorial angles for [product] with clickthrough CTAs.`,
+      `Give me 15 'Testimonial-style' ad scripts with timestamped beats.`,
+      `Identify the deepest emotional desire behind buying [product].`,
+      `Draft a 3-step retargeting funnel with custom creative concepts.`,
+      `Generate 30 variations of high-intent Meta primary text.`,
+      `Turn this article into 15 ad hooks worth split-testing: [link]`,
+      `Give me 25 'I tried X so you don't have to' short-form angles.`,
+      `Craft 10 direct-response Facebook headlines using the 4U formula.`,
+      `Give me 20 TikTok-style creator scripts with trending sounds.`,
+      `Turn my product reviews into 15 UGC scripts: [reviews]`,
+      `Generate a 5-step top-of-funnel acquisition campaign for [brand].`,
+      `Rewrite this email sequence for conversions: [email]`,
+      `Turn this product page into 18 problem-first ad hooks.`,
+      `Give me 12 fear-based angles that stay ethical.`,
+      `Give me Apple-style ads for [brand].`,
+      `Give me Duolingo-style unhinged ad ideas.`,
+      `Create 10 hooks using Lindy messaging principles.`,
+      `Break this offer into 25 micro pain points users pay to remove.`,
+      `Generate 10 Meta Ads theme testing concepts.`,
+      `Create 15 meme-ad concepts for [brand].`,
+      `Give me 20 tweets that would go viral promoting [tool].`,
+      `Generate a 'founder reaction' ad script mocking competitors.`,
+      `Create 8 scarcity-based angles without sounding scammy.`,
+      `Give me 10 user-persona-specific ad angles.`,
+      `Turn this customer avatar into 10 emotional before/after states.`,
+      `Turn this value prop into 20 ad hooks using the 'contrarian rule'.`,
+      `Write a Twitter thread selling [offer] without telling people you're selling.`,
+      `Generate a 3-video funnel for TikTok Shop promoting [product].`,
+      `Create 10 AI influencer scripts promoting [product].`,
+      `Give me 20 'unexpected payoff' short-form hooks.`,
+      `Break down the top 10 angles competitors use and remake them better.`,
+      `Give me 20 POV-style TikTok hooks specific to [product].`,
+      `Turn this raw footage idea into a full UGC TikTok ad concept.`,
+      `Generate 12 newsletter-style ads for native advertising.`,
+      `Turn this PDF into 15 Twitter ad angles.`,
+      `Give me 10 'start with the controversy' ad scripts.`,
+      `Create 10 founder-on-iPhone ads promoting [product].`,
+      `Give me 15 carousel ad ideas.`,
+      `Turn this feature list into 20 benefits using deeper layers.`,
+      `Create a complete warm retargeting funnel with scripts.`,
+      `Write an advertorial for [product] framed as new research.`,
+      `Give me 10 landing page hero headlines.`,
+      `Write 8 call-to-action variations based on motivation types.`,
+      `Give me 25 hooks written like Hormozi.`,
+      `Write 20 TikTok-style 'quick cuts' ad scripts.`,
+      `Generate 12 curiosity gaps promoting [offer].`,
+      `Turn this lead magnet into 9 ads.`,
+      `Create a 3-theme UGC testing framework.`,
+      `Shorten this ad into 10 viral 3-second hooks.`,
+      `Rewrite this script for YouTube ads.`,
+      `Give me 10 influencer collaboration scripts.`,
+      `Generate 15 ad variations for each buying stage.`,
+      `Turn this 3-minute script into a TikTok Shop short.`,
+      `Give me 8 founder story ads.`,
+      `Make 20 pain-based TikTok hooks.`,
+      `Turn this review section into short-form ad beats.`,
+      `Create 10 'meta' ads that break the fourth wall.`,
+      `Write 6 long-form cold email ads.`,
+      `Give me 10 hype-style listicle ads.`,
+      `Write 12 viral TikTok-style ad comments.`,
+      `Generate 10 seasonal angles.`,
+      `Turn this offer into 15 'This changes everything' angles.`,
+      `Analyze this audience and invent 12 new hooks they've never seen.`,
+      `Create 10 'duet'-friendly TikTok ad concepts.`,
+      `Craft 15 curiosity headlines for newsletter ads.`,
+      `Turn this FAQ section into 15 ads.`,
+      `Generate 10 'build tension → release tension' hooks.`,
+      `Give me 8 product demos using no real footage.`,
+      `Create 20 PPC-style headlines.`,
+      `Rewrite these ads with 10% more punch.`,
+      `Turn this landing page into 12 ads.`,
+      `Give me 7 'step-by-step' ads for TikTok.`,
+      `Write 10 B2B ads that feel like B2C.`,
+    ],
+  },
+  {
+    label: "GROWTH & VIRALITY PROMPTS",
+    color: LIME,
+    links: [
+      { icon: "💎", label: "Growth & Virality Expert — Gemini", link: "https://gemini.google.com/gem/1bu2bDXeJnA_e8CUttihARV4POT5Bpnqj?usp=sharing" },
+      { icon: "🤖", label: "Growth & Virality Expert — OpenAI", link: "https://chatgpt.com/g/g-695c387ace0481919a779a2ce68440f3-growth-and-virality-prompt-expert" },
+    ],
+    prompts: [
+      `Create 20 viral hook frameworks for TikTok and YouTube Shorts.`,
+      `Identify 20 relatable pain points for [audience] that go viral.`,
+      `Turn this boring concept into 15 viral-first ideas.`,
+      `Create 10 provocative takes that spark debate in the niche.`,
+      `Rewrite this into a viral Twitter/X thread.`,
+      `Make this idea 10x more shareable.`,
+      `Find 12 ways to productise this into a viral challenge.`,
+      `Turn this into a 30-day content challenge users will join.`,
+      `Rewrite this for maximum virality in vertical video.`,
+      `Give me 10 MrBeast-style viral titles for this niche.`,
+      `Create 20 viral storytelling templates that hook instantly.`,
+      `Generate 15 ways to make this content emotionally punchy.`,
+      `Rewrite this script using curiosity gaps.`,
+      `Create 10 'pattern interrupt' edits ideas.`,
+      `Identify 10 trends about to go viral in this industry.`,
+      `Create 12 viral frameworks based on polarisation.`,
+      `Make this content more controversial but still safe.`,
+      `Turn this TikTok trend into content for my product.`,
+      `Translate this idea into a meme series.`,
+      `Turn this idea into a viral UGC challenge.`,
+      `Give me 15 tweet hooks that force shares.`,
+      `Rewrite this idea to be more unexpected and disruptive.`,
+      `Turn my story into a viral transformation arc.`,
+      `Create 20 short-form video hook formulas.`,
+      `Identify 10 archetypes that always perform.`,
+      `Make this niche more interesting by adding conflict.`,
+      `Create a viral loop mechanic for user growth.`,
+      `Rewrite this CTA to generate reposts.`,
+      `Turn my offer into a viral giveaway idea.`,
+      `Create 10 formats that use curiosity loops.`,
+      `Turn these insights into viral carousels.`,
+      `Make this post 10x more controversial.`,
+      `Generate a viral thread based on this screenshot.`,
+      `Rewrite this script in TikTok-native pacing.`,
+      `Create a viral 'duet bait' script.`,
+      `Give me 10 viral POV-style scripts.`,
+      `Rewrite these testimonials to be more viral.`,
+      `Create a viral hook based on common misconceptions.`,
+      `Turn this dataset into a viral visualisation.`,
+      `Write 12 hooks based on emotional tension.`,
+    ],
+  },
+  {
+    label: "AI UGC, CREATIVES & CONTENT PRODUCTION",
+    color: TEAL,
+    links: [
+      { icon: "💎", label: "AI UGC & Content Expert — Gemini", link: "https://gemini.google.com/gem/132A4kvqg62ZulVAMuQIFJJmjJS7Il7MA?usp=sharing" },
+      { icon: "🤖", label: "AI UGC & Content Expert — OpenAI", link: "https://chatgpt.com/g/g-695c3aa4fd808191a2809e2a34341155-ai-ugc-creatives-and-content-production-expert" },
+    ],
+    prompts: [
+      `Generate a full 60s UGC script using (Hook → Story → Demo → CTA).`,
+      `Turn this product into 10 Maxfusion-ready AI influencer shot lists.`,
+      `Rewrite this script for a female wellness creator.`,
+      `Rewrite this script for a male creator.`,
+      `Generate 15 object-in-hand shot variations.`,
+      `Turn this raw image into 12 Nano Banana editing prompts.`,
+      `Create 10 talking-head script templates for AI avatars.`,
+      `Write a 7-scene TikTok ad storyboard.`,
+      `Create a 15-shot UGC filming plan.`,
+      `Rewrite this like a native TikTok creator.`,
+      `Rewrite this for a tech/product reviewer voice.`,
+      `Turn this testimonial into a short-form UGC ad.`,
+      `Rewrite this script as a POV skit.`,
+      `Create 12 'founder on iPhone' raw scripts.`,
+      `Create 10 side-by-side comparison script structures.`,
+      `Turn this feature list into a voiceover script.`,
+      `Write 20 Nano Banana Pro edit prompts for realism.`,
+      `Make 12 'scroll-stopping' frames for the hook.`,
+      `Improve this shot list for pacing.`,
+      `Create 8 'before/after' transformation shots.`,
+      `Turn this idea into a CapCut template script.`,
+      `Write 15 influencer-style intro lines.`,
+      `Generate 10 humorous UGC angles.`,
+      `Turn this long script into 10 micro clips.`,
+      `Create 10 Maxfusion avatar scenarios.`,
+      `Write scripts for skincare, fitness, finance, tech, food variations.`,
+      `Rewrite this into TikTok-native pacing.`,
+      `Create 12 #TikTokMadeMeBuyIt angles.`,
+      `Turn this into a product-in-hand explainer.`,
+      `Write 10 POV ads from the product's perspective.`,
+      `Turn this into an unboxing video.`,
+      `Create 8 UGC ads that don't show a face.`,
+      `Rewrite this script for Gen Z humour.`,
+      `Write a 30s voiceover-only ad script.`,
+      `Create 10 talking AI avatar ideas using Maxfusion ai.`,
+      `Turn this landing page into a TikTok UGC script.`,
+      `Write 10 ASMR-style product scripts.`,
+      `Generate 12 realism-improving prompts for AI-generated faces.`,
+      `Turn this offer into a 3-part UGC funnel.`,
+      `Create 10 lifestyle-shot prompts.`,
+      `Write 6 emotional storytelling ads.`,
+      `Turn this YouTube script into 10 TikToks.`,
+      `Write a Green Screen reaction ad.`,
+    ],
+  },
+  {
+    label: "SALES, OUTBOUND & DEMAND GEN",
+    color: EMBER,
+    links: [
+      { icon: "💎", label: "Sales, Outbound & Demand Gen — Gemini", link: "https://gemini.google.com/gem/1MaXcdLb984qg-e9Ay7u_sEVUBYbrjGvz?usp=sharing" },
+      { icon: "🤖", label: "Sales, Outbound & Demand Gen — OpenAI", link: "https://chatgpt.com/g/g-695c3ca2009c819196cd04fee677b77a-sales-outbound-and-demand-gen-expert" },
+    ],
+    prompts: [
+      `Write an outbound sequence using pain → agitation → solution.`,
+      `Rewrite this cold DM to sound human, not salesy.`,
+      `Turn the website into a personalised cold DM: [URL]`,
+      `Create 10 opener lines that get responses.`,
+      `Turn this case study into a LinkedIn DM script.`,
+      `Rewrite this DM for founders → rewrite for CMOs → rewrite for coaches.`,
+      `Generate 8 follow-up messages that don't annoy people.`,
+      `Turn my offer into 10 irresistible one-liners.`,
+      `Rewrite this outreach for 90% shorter responses.`,
+      `Create a nurture sequence for LinkedIn comments.`,
+      `Rewrite this email for high-authority buyers.`,
+      `Generate 10 call openers for sales calls.`,
+      `Write a 7-email nurture sequence.`,
+      `Turn this product into a 'value drop' message.`,
+      `Rewrite my outbound like a top closer.`,
+      `Turn this DM into a voice note script.`,
+      `Generate 10 permission-based cold DMs.`,
+      `Turn my profile into a daily inbound machine.`,
+      `Create scripts for selling without pitching.`,
+      `Rewrite this proposal to close faster.`,
+      `Analyse this transcript and tell me what to improve.`,
+      `Create a 'soft ask' CTA for my DMs.`,
+      `Turn this comment into a lead.`,
+      `Write 10 LinkedIn hook lines that spark DMs.`,
+      `Rewrite this for humour and personality.`,
+      `Generate 10 objection responses.`,
+      `Turn objections into buying triggers.`,
+      `Rewrite this email for 50% shorter length.`,
+      `Rewrite this for 90% more authority.`,
+      `Create a frictionless booking CTA.`,
+      `Create a 3-email reactivation sequence.`,
+      `Rewrite this DM for maximum intrigue.`,
+      `Generate 10 'value-first' outreach angles.`,
+      `Create 6 high-touch follow-ups.`,
+      `Write a 'breakup email' that gets replies.`,
+      `Turn this case study into a one-message close.`,
+      `Rewrite this into an irresistible angle.`,
+      `Write 8 'pattern interrupt' openers.`,
+      `Turn this script into a 60s voice note.`,
+      `Rewrite this to sound like a founder, not a salesperson.`,
+      `Analyse this LinkedIn profile and generate personalised DMs.`,
+      `Turn this offer into a demand creation post.`,
+      `Create 10 lead magnets based on the offer.`,
+      `Rewrite this landing page headline for clarity.`,
+      `Fix this CTA to reduce friction.`,
+      `Create 10 inbound traps for LinkedIn.`,
+    ],
+  },
+  {
+    label: "SYSTEMS, AUTOMATION & OPERATIONS",
+    color: CYAN,
+    links: [
+      { icon: "💎", label: "Systems, Automation & Ops — Gemini", link: "https://gemini.google.com/gem/1VDPzymg0eSGdhnJyCDCI1LTzJmGKSnc1?usp=sharing" },
+      { icon: "🤖", label: "Systems, Automation & Ops — OpenAI", link: "https://chatgpt.com/g/g-695c3e8a29d88191a0431b1ead07bc66-systems-automations-and-operations-expert" },
+    ],
+    prompts: [
+      `Turn this workflow into a step-by-step SOP.`,
+      `Rewrite this SOP into a checklist.`,
+      `Create a Notion dashboard plan for this project.`,
+      `Turn this process into automation opportunities.`,
+      `Create a weekly operating cadence.`,
+      `Generate a company-level operating system.`,
+      `Rewrite this so a VA can do it.`,
+      `Turn this into a hiring spec.`,
+      `Create onboarding docs from this process.`,
+      `Create an execution playbook for [team].`,
+      `Rewrite this workflow with AI integrations.`,
+      `Create a training manual for this task.`,
+      `Turn this into a repeatable 7-step process.`,
+      `Identify inefficiencies in this workflow.`,
+      `Rewrite this SOP using bulletproof clarity.`,
+      `Create a CEO dashboard structure.`,
+      `Turn this idea into a 90-day sprint.`,
+      `Generate 12 automations using Zapier/Make.`,
+      `Rewrite this to eliminate founder dependency.`,
+      `Create a scalable agency operating system.`,
+      `Create a customer success process.`,
+      `Rewrite this into a service delivery workflow.`,
+      `Turn this into a media buying operating system.`,
+      `Turn this clip editing workflow into an SOP.`,
+      `Create a reporting system for KPIs.`,
+      `Rewrite this into a replicable content workflow.`,
+      `Turn this team into a pod structure.`,
+      `Create a recruitment pipeline workflow.`,
+      `Rewrite this for operational efficiency.`,
+    ],
+  },
+  {
+    label: "ICP, MARKET RESEARCH & POSITIONING",
+    color: VIOLET,
+    links: [
+      { icon: "💎", label: "ICP, Market Research & Positioning — Gemini", link: "https://gemini.google.com/gem/1XSN7zMjx71rxLBFAruaYDVryYzaG516z?usp=sharing" },
+      { icon: "🤖", label: "ICP, Market Research & Positioning — OpenAI", link: "https://chatgpt.com/g/g-695c40476a8081918b765acb06da031d-icp-market-research-and-positioning-expert" },
+    ],
+    prompts: [
+      `Identify 20 unmet needs in this niche.`,
+      `Create 12 buyer personas with pains → desires → beliefs.`,
+      `Rewrite the ICP at sophistication level 1 → 5.`,
+      `Turn competitors' weaknesses into our strengths.`,
+      `Rewrite this position so it stands alone in the market.`,
+      `Create a category name for this business.`,
+      `Identify 20 gaps in this industry we can exploit.`,
+      `Map the top 15 buyer objections.`,
+      `Turn this product into 10 different ICP variations.`,
+      `Rewrite the brand story to attract premium buyers.`,
+      `Turn this niche into 10 subcultures.`,
+      `Identify the status markers buyers want.`,
+      `Rewrite this positioning to sound elite.`,
+      `Create a competitor map with white-space analysis.`,
+      `Rewrite this product so it sells on identity, not utility.`,
+      `Identify the emotional job-to-be-done.`,
+      `Rewrite this messaging for sophistication-level 6.`,
+      `Turn this into a contrarian position.`,
+      `Rewrite this offer using loss aversion.`,
+      `Identify outdated beliefs the brand can challenge.`,
+    ],
+  },
+  {
+    label: "STRATEGY, PLANNING & DECISION MAKING",
+    color: GREEN,
+    links: [
+      { icon: "💎", label: "Strategy, Planning & Decision Making — Gemini", link: "https://gemini.google.com/gem/1XeZCRSget0zpe_taaKSeUOl_nbscUMrp?usp=sharing" },
+      { icon: "🤖", label: "Strategy, Planning & Decision Making — OpenAI", link: "https://chatgpt.com/g/g-695c41be68d881918bcba13c93499fc1-strategy-planning-and-decision-making-expert" },
+    ],
+    prompts: [
+      `Create a simulation of best/worst-case outcomes.`,
+      `Turn this idea into a 12-month game plan.`,
+      `Rewrite this strategy for 1-person execution.`,
+      `Create a moat around this business.`,
+      `Turn this idea into a step-by-step success path.`,
+      `Rewrite this plan using first-principles reasoning.`,
+      `Identify where this plan has hidden risk.`,
+      `Rewrite this with 100x more clarity.`,
+      `Turn this goal into a reverse-engineered roadmap.`,
+      `Create a model for asymmetric bets.`,
+      `Rewrite this plan for a lean version.`,
+      `Turn this idea into 3 strategic options.`,
+      `Rewrite this using anti-fragile principles.`,
+      `Identify the leverage points in this system.`,
+      `Rewrite this workflow to maximise ROI.`,
+      `Create 3 versions of this strategy: cheap, mid, elite.`,
+      `Identify the bottlenecks preventing scalability.`,
+      `Turn this into a flywheel system.`,
+      `Rewrite this to reduce founder burnout.`,
+      `Create a contingency plan.`,
+    ],
+  },
+  {
+    label: "WRITING, EDITING & CONVERSION COPY",
+    color: GOLD,
+    links: [
+      { icon: "💎", label: "Writing, Editing & Conversion — Gemini", link: "https://gemini.google.com/gem/1JgJgZcRsUFLa3dOTIG7JGoX24H1EDykO?usp=sharing" },
+      { icon: "🤖", label: "Writing, Editing & Conversion — OpenAI", link: "https://chatgpt.com/g/g-695c43459bdc81919158227c44fe016e-writing-editing-and-conversion-copy-expert" },
+    ],
+    prompts: [
+      `Rewrite this landing page for conversion.`,
+      `Turn this long paragraph into punchy bullets.`,
+      `Rewrite this story with more emotional power.`,
+      `Turn this into a headline with clarity + intrigue.`,
+      `Rewrite this using PAS.`,
+      `Rewrite this using AIDA.`,
+      `Rewrite this using the Big Domino belief.`,
+      `Rewrite this using the Lindy method.`,
+      `Rewrite this for more personality.`,
+      `Turn this into a founder story.`,
+      `Rewrite for prestige/luxury tone.`,
+      `Make this more controversial.`,
+      `Rewrite this for speed readers.`,
+      `Turn this tweet into a long-form post.`,
+      `Rewrite this into an email promo.`,
+      `Make this sound 10x more confident.`,
+      `Rewrite for TikTok-style pacing.`,
+      `Rewrite this to be more persuasive.`,
+      `Rewrite this for a sophisticated buyer.`,
+      `Rewrite this for an emotional buyer.`,
+      `Rewrite this for a logical buyer.`,
+      `Rewrite this as a viral hook.`,
+      `Turn this essay into a viral thread.`,
+      `Rewrite this into a speech or video script.`,
+      `Rewrite into a 'copy-and-paste' template.`,
+      `Compress this text to 50% length.`,
+      `Turn this text into a CTA-first ad.`,
+      `Rewrite this for 5 alternative angles.`,
+      `Rewrite for humour.`,
+      `Rewrite this for higher clarity.`,
+    ],
+  },
+];
+
+function QuickScriptPanel({ cat }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(null);
+  const t = useT();
+
+  const copy = (text, i) => {
+    navigator.clipboard.writeText(text);
+    setCopied(i);
+    setTimeout(() => setCopied(null), 1500);
+  };
+
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div
+        onClick={() => setOpen(!open)}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 10,
+          padding: "10px 20px",
+          border: `1px solid ${cat.color}${open ? "80" : "40"}`,
+          background: open ? `${cat.color}18` : `${cat.color}08`,
+          color: cat.color,
+          fontFamily: "'Barlow Semi Condensed', 'Arial Black', sans-serif",
+          fontSize: 13, letterSpacing: 2, fontWeight: 600,
+          cursor: "pointer", transition: "all 0.2s",
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = `${cat.color}18`; e.currentTarget.style.borderColor = `${cat.color}80`; }}
+        onMouseLeave={e => { if (!open) { e.currentTarget.style.background = `${cat.color}08`; e.currentTarget.style.borderColor = `${cat.color}40`; }}}
+      >
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: cat.color, boxShadow: `0 0 6px ${cat.color}`, flexShrink: 0 }} />
+        {cat.label}
+        <span style={{ fontSize: 9, transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▼</span>
+        <span style={{ fontSize: 10, opacity: 0.6 }}>{cat.prompts.length} prompts</span>
+      </div>
+      {open && (
+        <div style={{ border: `1px solid ${cat.color}25`, borderTop: "none", background: "#0a0a0f" }}>
+          {cat.links && cat.links.length > 0 && (
+            <div style={{ display: "flex", gap: 8, padding: "10px 16px", borderBottom: `1px solid ${cat.color}15`, flexWrap: "wrap" }}>
+              {cat.links.map((l, j) => (
+                <a key={j} href={l.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 12px", border: `1px solid ${cat.color}40`, background: `${cat.color}08`, color: cat.color, fontFamily: "'Barlow Semi Condensed', sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: 1, cursor: "pointer", transition: "all 0.15s" }}
+                    onMouseEnter={e => { e.currentTarget.style.background = `${cat.color}18`; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = `${cat.color}08`; }}
+                  >
+                    <span style={{ fontSize: 13 }}>{l.icon}</span> {l.label} ↗
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+          <div style={{ maxHeight: 420, overflowY: "auto" }}>
+          {cat.prompts.map((p, i) => (
+            <div key={i} onClick={() => copy(p, i)}
+              style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 16px", borderBottom: i < cat.prompts.length - 1 ? `1px solid ${cat.color}10` : "none", cursor: "pointer", transition: "background 0.15s", background: copied === i ? `${cat.color}20` : "transparent" }}
+              onMouseEnter={e => { if (copied !== i) e.currentTarget.style.background = `${cat.color}10`; }}
+              onMouseLeave={e => { if (copied !== i) e.currentTarget.style.background = "transparent"; }}
+            >
+              <span style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: cat.color + "60", minWidth: 24, paddingTop: 2 }}>{String(i + 1).padStart(2, "0")}</span>
+              <span style={{ fontSize: 12, color: copied === i ? cat.color : "rgba(255,255,255,0.65)", lineHeight: 1.6, flex: 1, fontFamily: "system-ui" }}>{p}</span>
+              <span style={{ fontSize: 9, color: copied === i ? cat.color : "rgba(255,255,255,0.2)", fontFamily: "'Courier New', monospace", letterSpacing: 1, flexShrink: 0, paddingTop: 2 }}>{copied === i ? "COPIED ✓" : "COPY"}</span>
+            </div>
+          ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LinkButtons({ buttons }) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 8 }}>
+      {buttons.map((btn, i) => <LinkBtn key={i} btn={btn} />)}
     </div>
   );
 }
@@ -622,13 +1385,72 @@ function InfrastructureView() {
     <div>
       <SectionHeader>Three Jobs — What You're Working On</SectionHeader>
       <ThreeJobsPanel />
-      <SectionHeader>Revenue Paths</SectionHeader>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
-        {REVENUE_PATHS.map((r, i) => <RevenueCard key={i} r={r} />)}
+      <SectionHeader>External Projects — Revenue Generating</SectionHeader>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: 12, marginBottom: 8 }}>
+        {EXTERNAL_PROJECTS.map((p, i) => <ExternalProjectCard key={i} project={p} />)}
       </div>
+      <SectionHeader>Social Media</SectionHeader>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: 12, marginBottom: 8 }}>
+        {SOCIAL_MEDIA.map((p, i) => <ExternalProjectCard key={i} project={p} />)}
+      </div>
+      <CatHeader color={VIOLET}>AI Workflow Agents</CatHeader>
+      <LinkButtons buttons={[
+        { label: "GEM PRO", link: "https://lace-wolfberry-965.notion.site/450-GEMINI-3-PRO-FLASH-PROMPTS-2cc1f6060c488130970cf1ebc1d53e1c", color: GOLD },
+        { label: "GPT", link: "https://chatgpt.com/", color: GREEN },
+        { label: "GROK", link: "https://x.com/i/grok?conversation=2031638398050676836", color: CYAN },
+        { label: "GEM — PRODUCT + OFFER CREATION EXPERT", link: "https://gemini.google.com/gem/4cbe4df1747f", color: VIOLET },
+      ]} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: 12, marginBottom: 8 }}>
+        {AI_WORKFLOW_AGENTS.map((p, i) => <ExternalProjectCard key={i} project={p} />)}
+      </div>
+      <CatHeader color={MAGENTA}>Graphic Design Workflow</CatHeader>
+      <LinkButtons buttons={[
+        { label: "FROMSOFTWARE IMAGE CREATOR (ELDEN RING)", link: "https://rezuaq.be/new-area/image-creator/", color: EMBER },
+        { label: "CHOICE T-SHIRTS", link: "https://www.canva.com/design/DAHEjHuwIHQ/b4c2U6aztoBMAuSjefCDSQ/edit?ui=e30&referrer=https%3A%2F%2Fwww.canva.com%2F", color: MAGENTA },
+      ]} />
+      <CatHeader color={GREEN}>Shop Workflow</CatHeader>
+      <LinkButtons buttons={[
+        { label: "KALODATA", link: "https://www.kalodata.com/product", color: CYAN },
+        { label: "FASTMOSS", link: "https://www.fastmoss.com/", color: GREEN },
+      ]} />
+      <CatHeader color={TEAL}>More AI-Auto Workflow</CatHeader>
+      <LinkButtons buttons={[
+        { label: "MAKE.COM — FIRST AI AGENT", link: "https://help.make.com/create-your-first-ai-agent", color: CYAN },
+        { label: "CREWAI MULTI-AGENT OPEN SOURCE", link: "https://crewai.com/open-source", color: GREEN },
+        { label: "RTS AI AUTOMATION CONCEPT ARTICLE", link: "https://www.proofofconcept.pub/p/real-time-strategy-games-and-ai-interfaces", color: EMBER },
+        { label: "N8N — AI VIRAL VIDEOS VEO3 → TIKTOK", link: "https://n8n.io/workflows/8642-generate-ai-viral-videos-with-veo-3-and-upload-to-tiktok/", color: MAGENTA },
+        { label: "GOOGLE AI STUDIO — VEO 3.1", link: "https://aistudio.google.com/prompts/new_video?model=veo-3.1-fast-generate-preview", color: TEAL },
+        { label: "GOOGLE AI STUDIO — NANO BANANA 2", link: "https://aistudio.google.com/prompts/new_chat?model=models%2Fgemini-3.1-flash-image-preview&prompt=Generate%20an%20image%20of%20a%20banana%20wearing%20a%20costume.", color: LIME },
+      ]} />
+      <CatHeader color={RED}>Media</CatHeader>
+      <LinkButtons buttons={[
+        { label: "YOUTUBE EDM PLAYLIST", link: "https://www.youtube.com/playlist?list=PLwgC-cD-X2_UHYNefBtw80urYufVvA8N5", color: RED },
+        { label: "OSHO DISCOURSES", link: "https://oshoworld.com/the-book-of-wisdom-vol-1-01", color: GOLD },
+        { label: "SOULS IMPROVEMENT COMMUNITY (SKOOL)", link: "https://www.skool.com/souls-improvement-8514", color: VIOLET },
+        { label: "BT — YOUTUBE PROFITS", link: "https://community.brendaturner.com/c/program-materials/sections/863316/lessons/3278031", color: TEAL },
+        { label: "CLAUDE ARTICLE", link: "https://www.newyorker.com/tech/annals-of-technology/claude-shannon-the-father-of-the-information-age-turns-1100100", color: MAGENTA },
+        { label: "ONE PIECE QUOTES FOR VIDEOS", link: "https://www.youtube.com/watch?v=XMtmljz1Kq8", color: GOLD },
+        { label: "CLAUDE'S BODY REDDIT PROJECT", color: VIOLET, children: [
+          { label: "Theo — Controlling a Vector Robot", link: "https://www.reddit.com/r/claudexplorers/comments/1qaad1s/theo_controlling_a_vector_robot_through_mcp_or_in/" },
+          { label: "Claude's Body Part 3 (Final)", link: "https://www.reddit.com/r/claudexplorers/comments/1qayn66/claudes_body_part_3_final_for_now/" },
+          { label: "AutonCorp Biodome", link: "https://autoncorp.com/biodome/" },
+        ]},
+      ]} />
+      <CatHeader color={CYAN}>Command Center</CatHeader>
+      <LinkButtons buttons={[
+        { label: "NETLIFY", link: "https://app.netlify.com/", color: CYAN },
+        { label: "SHOPIFY STORE", link: "https://admin.shopify.com/store/choiceaurastore", color: GREEN },
+        { label: "SUBSTACK", link: "https://substack.com/@tylerchoice", color: EMBER },
+      ]} />
+      <CatHeader color={GOLD}>Quickscripts</CatHeader>
+      {QUICKSCRIPT_CATEGORIES.map((cat, i) => <QuickScriptPanel key={i} cat={cat} />)}
       <SectionHeader>Commerce Infrastructure</SectionHeader>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12, marginBottom: 12 }}>
         {COMMERCE_NODES.map((n, i) => <NodeCard key={i} node={n} />)}
+      </div>
+      <SectionHeader>Revenue Paths</SectionHeader>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 30 }}>
+        {REVENUE_PATHS.map((r, i) => <RevenueCard key={i} r={r} />)}
       </div>
       <div style={{ textAlign: "center", margin: "30px 0 10px", padding: 20, border: `1px solid ${t.name === "clean" ? t.border : "rgba(255,215,0,0.1)"}`, background: t.name === "clean" ? t.surfaceAlt : "rgba(255,215,0,0.02)" }}>
         <div style={{ fontSize: 28 }}>🔥</div>
@@ -643,8 +1465,6 @@ function ProjectsView() {
   const t = useT();
   return (
     <div>
-      <SectionHeader>External Projects — Revenue Generating</SectionHeader>
-      {EXTERNAL_PROJECTS.map((p, i) => <ProjectCard key={i} project={p} accent={MAGENTA} />)}
       <SectionHeader>Internal Projects — System Building</SectionHeader>
       {INTERNAL_PROJECTS.map((p, i) => <ProjectCard key={i} project={p} accent={CYAN} />)}
       <SectionHeader>AI Outsource Mini-Projects</SectionHeader>
@@ -809,6 +1629,63 @@ function GameBlocksView() {
 }
 
 // ─── AGENTS VIEW ─────────────────────────────────────────────────────
+function ExternalProjectCard({ project }) {
+  const t = useT();
+  const [expanded, setExpanded] = useState(false);
+  const sc = statusColor(project.status, t);
+  const isActive = ["live", "active", "deployed", "complete", "in progress"].includes(project.status);
+
+  return (
+    <div
+      onClick={() => setExpanded(!expanded)}
+      style={{
+        border: `1px solid ${expanded ? sc + "50" : sc + "20"}`,
+        background: expanded ? `${sc}08` : t.surface,
+        cursor: "pointer",
+        transition: "all 0.3s",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* top accent bar */}
+      <div style={{ height: 2, background: sc, opacity: isActive ? 1 : 0.3, boxShadow: isActive ? `0 0 8px ${sc}` : "none" }} />
+      <div style={{ padding: "16px 18px" }}>
+        {/* Header row */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: expanded ? 10 : 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{
+              width: 48, height: 48,
+              border: `1px solid ${sc}40`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 22, background: `${sc}10`, flexShrink: 0,
+              boxShadow: isActive ? `0 0 12px ${sc}30` : "none",
+            }}>
+              {project.icon}
+            </div>
+            <div>
+              <div style={{ fontFamily: t.fontBody, fontWeight: 900, fontSize: 18, color: t.text, letterSpacing: 1 }}>{project.name}</div>
+              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 9, color: sc, letterSpacing: 3, marginTop: 2 }}>EXTERNAL PROJECT</div>
+              <div style={{ fontFamily: "'Courier New', monospace", fontSize: 8, color: t.textLabel, letterSpacing: 2, marginTop: 2 }}>REVENUE GENERATING</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <PulsingDot color={sc} size={7} />
+              <span style={{ ...tagStyle(project.status) }}>{project.status}</span>
+            </div>
+            <span style={{ color: t.textLabel, fontSize: 11, transform: expanded ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>▶</span>
+          </div>
+        </div>
+        {expanded && (
+          <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${sc}20` }}>
+            <div style={{ fontSize: 12, color: t.textSub, lineHeight: 1.8, whiteSpace: "pre-line" }}>{project.desc}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function AgentCard({ agent }) {
   const t = useT();
   const [expanded, setExpanded] = useState(false);
@@ -1222,6 +2099,217 @@ function StrategiesView() {
   );
 }
 
+// ─── TETRIS VIEW ─────────────────────────────────────────────────────
+const TW = 10, TH = 20, TC = 26;
+const TPIECES = [
+  { color: CYAN,    rots: [[[0,1],[1,1],[2,1],[3,1]],[[2,0],[2,1],[2,2],[2,3]]] },
+  { color: GOLD,    rots: [[[0,0],[1,0],[0,1],[1,1]]] },
+  { color: VIOLET,  rots: [[[0,0],[1,0],[2,0],[1,1]],[[0,0],[1,0],[1,1],[1,2]],[[1,0],[0,1],[1,1],[2,1]],[[0,0],[0,1],[1,1],[0,2]]] },
+  { color: GREEN,   rots: [[[1,0],[2,0],[0,1],[1,1]],[[0,0],[0,1],[1,1],[1,2]]] },
+  { color: RED,     rots: [[[0,0],[1,0],[1,1],[2,1]],[[1,0],[0,1],[1,1],[0,2]]] },
+  { color: EMBER,   rots: [[[0,0],[0,1],[1,1],[2,1]],[[0,0],[1,0],[0,1],[0,2]],[[0,0],[1,0],[2,0],[2,1]],[[1,0],[1,1],[0,2],[1,2]]] },
+  { color: MAGENTA, rots: [[[2,0],[0,1],[1,1],[2,1]],[[0,0],[0,1],[0,2],[1,2]],[[0,0],[1,0],[2,0],[0,1]],[[1,0],[0,1],[1,1],[1,2]]] },
+];
+function tNewPiece() {
+  const p = TPIECES[Math.floor(Math.random() * TPIECES.length)];
+  return { p, r: 0, x: 3, y: 0 };
+}
+function tCells(pc) {
+  return pc.p.rots[pc.r % pc.p.rots.length].map(([dx, dy]) => [pc.x + dx, pc.y + dy]);
+}
+function tValid(board, pc) {
+  return tCells(pc).every(([x, y]) => x >= 0 && x < TW && y >= 0 && y < TH && !board[y]?.[x]);
+}
+function tLock(board, pc) {
+  const b = board.map(r => [...r]);
+  tCells(pc).forEach(([x, y]) => { if (y >= 0) b[y][x] = pc.p.color; });
+  return b;
+}
+function tClearLines(board) {
+  const kept = board.filter(r => r.some(c => !c));
+  const n = TH - kept.length;
+  return { board: [...Array.from({ length: n }, () => Array(TW).fill(null)), ...kept], n };
+}
+
+function TetrisView() {
+  const t = useT();
+  const emptyBoard = () => Array.from({ length: TH }, () => Array(TW).fill(null));
+  const [board, setBoard] = useState(emptyBoard);
+  const [cur, setCur] = useState(null);
+  const [nxt, setNxt] = useState(tNewPiece);
+  const [score, setScore] = useState(0);
+  const [lines, setLines] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [over, setOver] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [running, setRunning] = useState(false);
+
+  const ref = useRef({});
+  useEffect(() => { ref.current = { board, cur, nxt, score, lines, level, over, paused, running }; });
+
+  const doSpawn = useCallback((b, n, sc, li, lv) => {
+    const { board: b2, n: cleared } = tClearLines(b);
+    const pts = [0, 100, 300, 500, 800][Math.min(cleared, 4)] * lv;
+    const newLines = li + cleared;
+    setBoard(b2); setScore(sc + pts); setLines(newLines); setLevel(Math.floor(newLines / 10) + 1);
+    if (!tValid(b2, n)) { setOver(true); return; }
+    setCur(n); setNxt(tNewPiece());
+  }, []);
+
+  const doLock = useCallback((c) => {
+    const { board: b, nxt: n, score: sc, lines: li, level: lv } = ref.current;
+    doSpawn(tLock(b, c), n, sc, li, lv);
+  }, [doSpawn]);
+
+  const doDrop = useCallback(() => {
+    const { cur: c, board: b, over: o, paused: p } = ref.current;
+    if (!c || o || p) return;
+    const moved = { ...c, y: c.y + 1 };
+    if (tValid(b, moved)) setCur(moved); else doLock(c);
+  }, [doLock]);
+
+  useEffect(() => {
+    if (!running || over) return;
+    const iv = setInterval(doDrop, Math.max(80, 800 - (level - 1) * 70));
+    return () => clearInterval(iv);
+  }, [running, over, level, doDrop]);
+
+  useEffect(() => {
+    if (!running) return;
+    const h = (e) => {
+      const { cur: c, board: b, over: o, paused: p } = ref.current;
+      if (e.key === 'p' || e.key === 'P') { if (!o) setPaused(x => !x); return; }
+      if (o || p || !c) return;
+      if (['ArrowLeft','ArrowRight','ArrowDown','ArrowUp',' '].includes(e.key)) e.preventDefault();
+      if (e.key === 'ArrowLeft') { const m={...c,x:c.x-1}; if(tValid(b,m)) setCur(m); }
+      else if (e.key === 'ArrowRight') { const m={...c,x:c.x+1}; if(tValid(b,m)) setCur(m); }
+      else if (e.key === 'ArrowDown') doDrop();
+      else if (e.key === 'ArrowUp') { const m={...c,r:(c.r+1)%c.p.rots.length}; if(tValid(b,m)) setCur(m); }
+      else if (e.key === ' ') { let hy=c.y; while(tValid(b,{...c,y:hy+1})) hy++; doLock({...c,y:hy}); }
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [running, doDrop, doLock]);
+
+  const startGame = () => {
+    const p1 = tNewPiece(), p2 = tNewPiece();
+    setBoard(emptyBoard()); setCur(p1); setNxt(p2);
+    setScore(0); setLines(0); setLevel(1);
+    setOver(false); setPaused(false); setRunning(true);
+  };
+
+  const ghost = (() => {
+    if (!cur || over) return null;
+    let gy = cur.y;
+    while (tValid(board, { ...cur, y: gy + 1 })) gy++;
+    return gy !== cur.y ? { ...cur, y: gy } : null;
+  })();
+
+  const activeCellSet = cur && !over ? new Set(tCells(cur).map(([x,y]) => `${x},${y}`)) : new Set();
+  const ghostCellSet  = ghost ? new Set(tCells(ghost).map(([x,y]) => `${x},${y}`)) : new Set();
+  const curColorMap   = cur && !over ? Object.fromEntries(tCells(cur).map(([x,y]) => [`${x},${y}`, cur.p.color])) : {};
+  const nxtCellSet    = nxt ? new Set(nxt.p.rots[0].map(([dx,dy]) => `${dx},${dy}`)) : new Set();
+  const isHud = t.name === 'hud';
+
+  return (
+    <div>
+      <SectionHeader color={RED}>Tetris</SectionHeader>
+      <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        {/* Board */}
+        <div style={{ position: 'relative', border: `1px solid ${RED}30`, background: isHud ? '#050508' : '#f0ece4', flexShrink: 0 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${TW}, ${TC}px)` }}>
+            {Array.from({ length: TH }, (_, ri) => Array.from({ length: TW }, (_, ci) => {
+              const key = `${ci},${ri}`;
+              const isAct = activeCellSet.has(key);
+              const isGh  = !isAct && ghostCellSet.has(key);
+              const col   = isAct ? curColorMap[key] : board[ri][ci];
+              return (
+                <div key={key} style={{
+                  width: TC, height: TC, boxSizing: 'border-box',
+                  background: col ? col : isGh ? `${cur?.p.color}18` : 'transparent',
+                  border: col
+                    ? `1px solid ${col}88`
+                    : isGh
+                    ? `1px solid ${cur?.p.color}35`
+                    : `1px solid ${isHud ? 'rgba(255,255,255,0.04)' : '#e0dbd0'}`,
+                  boxShadow: col && isHud ? `inset 0 0 8px ${col}40` : 'none',
+                }} />
+              );
+            }))}
+          </div>
+          {(!running || over || paused) && (
+            <div style={{
+              position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.82)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14,
+            }}>
+              {!running && !over && <div style={{ fontSize: 11, color: CYAN, letterSpacing: 4, fontFamily: t.fontMono, textShadow: `0 0 12px ${CYAN}` }}>// TETRIS //</div>}
+              {over && <div style={{ fontSize: 14, color: RED, letterSpacing: 4, fontFamily: t.fontMono, textShadow: `0 0 12px ${RED}` }}>GAME OVER</div>}
+              {over && <div style={{ fontSize: 11, color: GOLD, fontFamily: t.fontMono }}>SCORE: {score.toLocaleString()}</div>}
+              {paused && !over && <div style={{ fontSize: 13, color: GOLD, letterSpacing: 4, fontFamily: t.fontMono, textShadow: `0 0 10px ${GOLD}` }}>PAUSED</div>}
+              <button onClick={paused && !over ? () => setPaused(false) : startGame} style={{
+                background: 'transparent', border: `1px solid ${CYAN}`, color: CYAN,
+                fontFamily: t.fontMono, fontSize: 11, letterSpacing: 2,
+                padding: '8px 24px', cursor: 'pointer',
+                textShadow: `0 0 8px ${CYAN}80`,
+              }}>
+                {over ? '[ RESTART ]' : paused ? '[ RESUME ]' : '[ START ]'}
+              </button>
+              {paused && !over && (
+                <button onClick={startGame} style={{
+                  background: 'transparent', border: `1px solid ${RED}60`, color: RED,
+                  fontFamily: t.fontMono, fontSize: 10, letterSpacing: 2,
+                  padding: '6px 18px', cursor: 'pointer',
+                }}>[ NEW GAME ]</button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Side panel */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 130 }}>
+          {[
+            { label: 'SCORE', value: score.toLocaleString(), color: GOLD },
+            { label: 'LINES', value: lines, color: CYAN },
+            { label: 'LEVEL', value: level, color: GREEN },
+          ].map(({ label, value, color }) => (
+            <div key={label} style={{ border: `1px solid ${color}25`, padding: '10px 14px', background: isHud ? `${color}07` : t.surface }}>
+              <div style={{ fontSize: 9, color, letterSpacing: 3, marginBottom: 4, fontFamily: t.fontMono }}>{label}</div>
+              <div style={{ fontSize: 22, color, fontFamily: t.fontMono, textShadow: isHud ? `0 0 12px ${color}50` : 'none' }}>{value}</div>
+            </div>
+          ))}
+          <div style={{ border: `1px solid ${VIOLET}25`, padding: '10px 14px', background: isHud ? `${VIOLET}06` : t.surface }}>
+            <div style={{ fontSize: 9, color: VIOLET, letterSpacing: 3, marginBottom: 10, fontFamily: t.fontMono }}>NEXT</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 14px)', gap: 2 }}>
+              {Array.from({ length: 8 }, (_, i) => {
+                const ci = i % 4, ri = Math.floor(i / 4);
+                const has = nxtCellSet.has(`${ci},${ri}`);
+                const c = has ? nxt?.p.color : null;
+                return (
+                  <div key={i} style={{
+                    width: 14, height: 14,
+                    background: c || 'transparent',
+                    border: c ? `1px solid ${c}80` : '1px solid transparent',
+                    boxShadow: c && isHud ? `0 0 4px ${c}` : 'none',
+                  }} />
+                );
+              })}
+            </div>
+          </div>
+          <div style={{ border: `1px solid ${t.border}`, padding: '10px 14px', background: isHud ? 'rgba(255,255,255,0.015)' : t.surface }}>
+            <div style={{ fontSize: 9, color: t.textLabel, letterSpacing: 3, marginBottom: 8, fontFamily: t.fontMono }}>KEYS</div>
+            {[['← →','Move'],['↑','Rotate'],['↓','Soft drop'],['SPC','Hard drop'],['P','Pause']].map(([k, v]) => (
+              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', gap: 6, marginBottom: 4 }}>
+                <span style={{ fontSize: 10, color: CYAN, fontFamily: t.fontMono }}>{k}</span>
+                <span style={{ fontSize: 9, color: t.textMuted }}>{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── MAIN APP ────────────────────────────────────────────────────────
 const TABS = [
   { id: "infra", label: "Infrastructure", accent: CYAN },
@@ -1232,6 +2320,7 @@ const TABS = [
   { id: "codex", label: "Codex", accent: EMBER },
   { id: "research", label: "Field Research", accent: TEAL },
   { id: "strategies", label: "Strategies", accent: LIME },
+  { id: "tetris", label: "Tetris", accent: RED },
 ];
 
 export default function App({ themeName = "hud", setThemeName = null }) {
@@ -1255,6 +2344,7 @@ export default function App({ themeName = "hud", setThemeName = null }) {
       case "codex": return <CodexView />;
       case "research": return <FieldResearchView />;
       case "strategies": return <StrategiesView />;
+      case "tetris": return <TetrisView />;
       default: return <InfrastructureView />;
     }
   };
