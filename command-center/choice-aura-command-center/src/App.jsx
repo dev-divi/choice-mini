@@ -279,6 +279,7 @@ const THREE_JOBS = [
       { name: "CapCut Edits Tutorial", status: "active", price: "$25", link: "https://tr.ee/3b-1UGQYAJ" },
       { name: "Operator Dashboard", status: "active", link: "https://choice-operator-dashboard.netlify.app/" },
       { name: "Clark — Shop Automation", status: "complete", link: "" },
+      { name: "ClaudeCourse.dev Course", status: "in progress", link: "https://claudecourse.dev/" },
     ]
   },
 ];
@@ -1403,6 +1404,13 @@ function InfrastructureView() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(420px, 1fr))", gap: 12, marginBottom: 8 }}>
         {AI_WORKFLOW_AGENTS.map((p, i) => <ExternalProjectCard key={i} project={p} />)}
       </div>
+      <CatHeader color={EMBER}>AI Actors & UGC</CatHeader>
+      <LinkButtons buttons={[
+        { label: "ORI'S ALEXANDRIA'S GEN AI LIBRARY (INDEX)", link: "https://orisilver.substack.com/p/oris-alexandrias-gen-ai-resource-2c7?triedRedirect=true", color: GOLD },
+        { label: "G.E.M. AD FRAMEWORK", link: "https://lace-wolfberry-965.notion.site/The-G-E-M-Framework-Creating-High-Quality-AI-Ads-3a6e9092d6054990b1e232eea0f6f614", color: GREEN },
+        { label: "AI ACTOR UGC COOKBOOK", link: "https://lace-wolfberry-965.notion.site/AI-UGC-INFLUENCER-COOKBOOK-2c31f6060c4880468275f4ffa9ce10b6", color: CYAN },
+        { label: "MAXFUSION SWITCHACTOR", link: "https://lace-wolfberry-965.notion.site/Switch-Actor-Replace-Any-Actor-In-Any-Video-3a48e2c754ed4457a397ea57c40c9751", color: VIOLET },
+      ]} />
       <CatHeader color={MAGENTA}>Graphic Design Workflow</CatHeader>
       <LinkButtons buttons={[
         { label: "FROMSOFTWARE IMAGE CREATOR (ELDEN RING)", link: "https://rezuaq.be/new-area/image-creator/", color: EMBER },
